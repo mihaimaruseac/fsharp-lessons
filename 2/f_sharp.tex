@@ -3,501 +3,576 @@
 \usepackage{hyperref}
 \mode<presentation>
 
-\title{F\#.1 : Introduction. Basic Concepts}
+\title{F\#.2 : Lists and Sequences. Higher Order Functions}
 \author{Mihai Maruseac, ROSEdu\\mihai@rosedu.org}
 
 \setbeamertemplate{frametitle continuation}[from second]
 \setbeamertemplate{footline}[frame number]
 
-\pgfdeclareimage[height=7cm]{langrankbig}{img/langrankbig}
-\pgfdeclareimage[height=7cm]{langs}{img/langs}
-
 \begin{document}
 
 \maketitle
 
-\begin{frame}{About me}
+\begin{frame}
+  \tableofcontents
+\end{frame}
+
+\begin{frame}[fragile]{Last time...}
   \begin{itemize}
-    \item MSc student, AI, UPB (+T.A.)
-    \item AI, Functional Programming, Compilers, Operating Systems
-    \item Haskell, Python, C
-    \item Pardus, Utopia
-    \item IRC, FB, Twitter, etc
+    \item short history of FP
+    \item F\#: functional, imperative, object-oriented
+    \item types in F\#
+    \item functions and pattern matching
+    \item recursive functions
+    \item lists and tuples
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Language popularity}
-  \center
-  \pgfuseimage{langrankbig}
+\begin{frame}[fragile]{Last Assignment}
+  \begin{itemize}
+    \item Implement a \textit{Caesar cipher}
+    \item For input \texttt{cipher "hello" 13}
+    \item Should produce \texttt{uryyb}
+  \end{itemize}
 \end{frame}
 
-\begin{frame}{Language matrix}
-  \center
-  \pgfuseimage{langs}
+\begin{frame}[fragile]{Solution (1)}
+        \tiny
+  \begin{verbatim}
+> let letter_to_int (c:char) = (int c) - (int 'a');;
+> let int_to_letter v = char ((v % 26 + (int 'a')));;
+> let rec convert_to_string s = match s with
+                                | [] -> ""
+                                | l::ls -> l.ToString() + convert_to_string ls;;
+> let convert_to_list str = List.ofSeq str;;
+> let convert_letter letter delta = int_to_letter ((letter_to_int letter) + delta);;
+> let rec convert_each letters delta = match letters with
+                                       | [] -> []
+                                       | l::ls -> convert_letter l delta :: convert_each ls delta;;
+> let cipher input delta = convert_to_string (convert_each (convert_to_list input) delta);;
+> cipher "hello" 13;;
+val it : string = "uryyb"
+  \end{verbatim}
 \end{frame}
 
-\begin{frame}{Why?}
-  \begin{block}{Alan Perlis}
-   \textit{A language that doesn't affect the way you think about programming, is not
-   worth knowing.}
-  \end{block}
+\begin{frame}[fragile]{Solution(2)}
+        \tiny
+  \begin{verbatim}
+> let cipher (input:string) delta = 
+      input |> 
+      List.ofSeq |>
+      List.map (fun x -> char ((delta + int x - int 'a') % 26 + int 'a')) |>
+      List.fold (fun x y -> x + y.ToString()) "";;
+  \end{verbatim}
+\end{frame}
+
+\section{Lists and Sequences}
+\frame{\tableofcontents[currentsection]}
+
+\begin{frame}[fragile]{List Construction}
+  \begin{itemize}
+    \item element-wise: \texttt{2 :: []}
+    \item ranges (list comprehensions): \texttt{[0 .. 5]}
+    \item ranges with steps: \texttt{[0 .. 2 .. 10]}
+    \item initializer: \texttt{List.init 5 square}
+    \item generators
+    \begin{verbatim}
+    > [ for a in 1 .. 10 do
+            yield (a * a) ];;
+    \end{verbatim}
+    \pause
+    \begin{verbatim}
+    > [ for a in 1 .. 3 do
+        for b in 3 .. 7 do
+            yield (a, b) ];;
+    \end{verbatim}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Generators}
+  \begin{verbatim}
+  > [ for a in 1 .. 100 do
+      if a % 3 = 0 && a % 5 = 0 then yield a];;
+  \end{verbatim}
   \pause
-  \begin{block}{Ludwig Wittgenstein}
-   \textit{The limits of my language mean the limits of my world.}
-  \end{block}
+  \begin{verbatim}
+  > [for a in ["ana", "maria"] do yield [a; a; a] ];;
+  \end{verbatim}
   \pause
-  \begin{block}{Benjamin Lee Whorf}
-   \textit{Language shapes the way we think, and determines what we can think
-   about.}
-  \end{block}
+  \begin{verbatim}
+  > [for a in ["ana", "maria"] do yield! [a; a; a] ];;
+  \end{verbatim}
 \end{frame}
 
-\begin{frame}{History}
+\begin{frame}[fragile]{Mixing \texttt{yield} and \texttt{yield!}}
+  \begin{verbatim}
+  > [for a in 1 .. 5 do
+      match a with
+      | 3 -> yield! ["hello"; "world"]
+      | _ -> yield a.ToString() ];;
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Infinite Data Types}
   \begin{itemize}[<+->]
-    \item 1930s, Alonzo Church, $\lambda$-calculus
-    \item 1950s, John McCarthy, \texttt{LISP}
-    \begin{itemize}
-      \item \texttt{LISP} $\rightarrow$ \texttt{Scheme}, \texttt{Dylan},
-      \texttt{Scala}, \texttt{Racket}
-    \end{itemize}
-    \item 1960s, \texttt{IPL}, \texttt{APL}
-    \item 1970s, \texttt{FP}, John Bachus
-    \begin{itemize}
-      \item \texttt{Can Programming Be Liberated From the von Neumann Style? A
-      Functional Style and its Algebra of Programs}
-      \item \texttt{APL}, \texttt{FP} $\rightarrow$ \texttt{J}
-    \end{itemize}
-    \item 1970s, Robin Milner, \texttt{ML}
-    \item 1970s, David Turner, \texttt{Miranda}
-    \item 1990s, committee, \texttt{Haskell}
-    \begin{itemize}
-      \item open standard for functional programming research
-    \end{itemize}
+    \item infinite streams of values
+    \item finite representation
+    \item F\# is eager. Haskell is lazy
+    \item sequences
+  \end{itemize}
+  \pause
+  \tiny
+  \begin{verbatim}
+  > seq { 1 .. 10 };;
+  > seq { 1 .. 2 .. 10 };;
+  > seq { 10 .. -1 .. 0 };;
+  > seq { for a in 1 .. 10 do yield a, a*a, a*a*a };;
+  > let allEvens =
+      let rec loop x = seq { yield x; yield! loop (x + 2) }
+      loop 0;;
+  > let seqInfinite = Seq.initInfinite (fun index ->
+        let n = float( index + 1 )
+        1.0 / (n * n * (if ((index + 1) % 2 = 0) then 1.0 else -1.0)));;
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}{Bread and Butter Modules}
+  \begin{description}
+    \item[lists] \texttt{List.}
+    \item[sequences] \texttt{Seq.}
+  \end{description}
+  \pause
+  \begin{itemize}
+    \item create new structures
+    \item extract elements
+    \item skip elements
+    \item code reduction
+    \item code readability
+    \item remember DRY principle
+    \item proving correctness
   \end{itemize}
 \end{frame}
 
-\begin{frame}{ML Languages}
+\begin{frame}[fragile]{Take}
   \begin{itemize}
-    \item \texttt{OCaml}, \texttt{StandardML}
-    \item \texttt{Miranda}
-    \item \texttt{Haskell}
+    \item \texttt{Seq.take : int -> seq<'a> -> seq<'a>}
+  \end{itemize}
+  \tiny
+  \begin{verbatim}
+  > Seq.take 5 (Seq.initInfinite (fun x -> x * x));;
+  val it : seq<int> = seq [0; 1; 4; 9; ...]
+  > Seq.toList (Seq.take 5 (Seq.initInfinite (fun x -> x * x)));;
+  val it : int list = [0; 1; 4; 9; 16]
+  > (fun x -> x * x) |> Seq.initInfinite |> Seq.take 5 |> Seq.toList;;
+  val it : int list = [0; 1; 4; 9; 16]
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Drop}
+  \begin{itemize}
+    \item \texttt{Seq.skip : int -> seq<'a> -> seq<'a>}
+  \end{itemize}
+  \begin{verbatim}
+  > Seq.skip 5 (Seq.initInfinite (fun x -> x * x));;
+  val it : seq<int> = seq [25; 36; 49; 64; ...]
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}{FizzBuzz}
+  \begin{block}{Exercise}
+  Write a program that prints the numbers from 1 to 100. But for multiples of
+  three print "Fizz" instead of the number and for the multiples of five print
+  "Buzz". For numbers which are multiples of both three and five print
+  "FizzBuzz".
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Solution with Lists}
+  \tiny
+  \begin{verbatim}
+> [ for i in 1 .. 100 do
+      if i % 15 = 0 then yield "FizzBuzz"
+      elif i % 5 = 0 then yield "Buzz"
+      elif i % 3 = 0 then yield "Fizz"
+      else yield i.ToString() ];;
+val it : string list =
+  ["1"; "2"; "Fizz"; "4"; "Buzz"; "Fizz"; "7"; "8"; "Fizz"; "Buzz"; "11";
+   "Fizz"; "13"; "14"; "FizzBuzz"; "16"; "17"; "Fizz"; "19"; "Buzz"; "Fizz";
+   "22"; "23"; "Fizz"; "Buzz"; "26"; "Fizz"; "28"; "29"; "FizzBuzz"; "31";
+   "32"; "Fizz"; "34"; "Buzz"; "Fizz"; "37"; "38"; "Fizz"; "Buzz"; "41";
+   "Fizz"; "43"; "44"; "FizzBuzz"; "46"; "47"; "Fizz"; "49"; "Buzz"; "Fizz";
+   "52"; "53"; "Fizz"; "Buzz"; "56"; "Fizz"; "58"; "59"; "FizzBuzz"; "61";
+   "62"; "Fizz"; "64"; "Buzz"; "Fizz"; "67"; "68"; "Fizz"; "Buzz"; "71";
+   "Fizz"; "73"; "74"; "FizzBuzz"; "76"; "77"; "Fizz"; "79"; "Buzz"; "Fizz";
+   "82"; "83"; "Fizz"; "Buzz"; "86"; "Fizz"; "88"; "89"; "FizzBuzz"; "91";
+   "92"; "Fizz"; "94"; "Buzz"; "Fizz"; "97"; "98"; "Fizz"; "Buzz"]
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Solution with Sequences (1)}
+  \begin{verbatim}
+> seq { for i in 1 .. 100 do
+      if i % 15 = 0 then yield "FizzBuzz"
+      elif i % 5 = 0 then yield "Buzz"
+      elif i % 3 = 0 then yield "Fizz"
+      else yield i.ToString() };;
+val it : seq<string> = seq ["1"; "2"; "Fizz"; "4"; ...]
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Solution with Sequences (2)}
+  \begin{verbatim}
+> Seq.take 100 (Seq.skip 1 (Seq.initInfinite (fun x -> 
+          if x % 15 = 0 then "FizzBuzz"
+          elif x % 5 = 0 then "Buzz"
+          elif x % 3 = 0 then "Fizz"
+          else x.ToString())));;
+val it : seq<string> = seq ["1"; "2"; "Fizz"; "4"; ...]
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Appending}
+  \tiny
+  \begin{itemize}
+    \item \texttt{List.append : val it : 'a list -> 'a list -> 'a list}
+    \item \texttt{(@) : val it : 'a list -> 'a list -> 'a list}
+    \item \texttt{Seq.append : val it : seq<'a> -> seq<'a> -> seq<'a>}
+  \end{itemize}
+  \begin{verbatim}
+  > List.append [1;2;3] [4;5;6];;
+  val it : int list = [1; 2; 3; 4; 5; 6]
+  > [1;2;3] @ [4;5;6];;
+  val it : int list = [1; 2; 3; 4; 5; 6]
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Extracting elements}
+  \begin{itemize}
+    \item \texttt{List.head : 'a list -> 'a}
+    \item \texttt{Seq.head : seq<'a> -> 'a}
+    \item \texttt{List.nth : 'a list -> int -> 'a}
+    \item \texttt{Seq.nth : int -> seq<'a> -> 'a}
+  \end{itemize}
+  \begin{verbatim}
+  > Seq.head (Seq.initInfinite (fun x -> x * x));;
+  val it : int = 0
+  > Seq.nth 15 (Seq.initInfinite (fun x -> x * x));;
+  val it : int = 225
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Tails}
+  \begin{itemize}
+    \item \texttt{List.tail : ('a list -> 'a list)}
+    \item \textbf{Only for lists!}
+  \end{itemize}
+  \begin{verbatim}
+  > List.tail [1;2;3;4];;
+  val it : int list = [2; 3; 4]
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Windows}
+  \begin{itemize}
+    \item \texttt{Seq.windowed : (int -> seq<'a> -> seq<'a []>)}
+    \item \textbf{Only for sequences!}
+    \item Returns sequence of arrays
+  \end{itemize}
+  \tiny
+  \begin{verbatim}
+  > Seq.windowed 2 (Seq.initInfinite (fun x -> x));;
+  val it : seq<int []> = seq [[|0; 1|]; [|1; 2|]; [|2; 3|]; [|3; 4|]; ...]
+  > Seq.windowed 2 (Seq.initInfinite (fun x -> x)) |> Seq.head;;
+  val it : int [] = [|0; 1|]
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Pairing and Unpairing}
+  \small
+  \begin{itemize}
+    \item \texttt{List.zip : ('a list -> 'b list -> ('a * 'b) list)}
+    \item \texttt{Seq.zip : (seq<'a> -> seq<'b> -> seq<'a * 'b>)}
+    \item \texttt{List.unzip : (('a * 'b) list -> 'a list * 'b list)}
+  \end{itemize}
+  \tiny
+  \begin{verbatim}
+  > List.zip [2;3;4] ["ana"; "has"; "apples"];;
+  val it : (int * string) list = [(2, "ana"); (3, "has"); (4, "apples")]
+  > List.zip [2;3;4] ["ana"; "has"; "apples"] |> List.unzip;;
+  val it : int list * string list = ([2; 3; 4], ["ana"; "has"; "apples"])
+  \end{verbatim}
+\end{frame}
+
+\section{Higher Order Functions}
+\frame{\tableofcontents[currentsection]}
+
+\begin{frame}[fragile]{Higher Order Functions}
+  \begin{itemize}[<+->]
+    \item functions as data (parameters, returned)
+    \item math: $lim$, $\nabla$, $\frac{d}{dx}$, $\frac{\delta}{\delta x}$
+  \end{itemize}
+  \pause
+  \begin{verbatim}
+  > let passAnswer f = f 42;;
+  > let square x = x * x;;
+  > let cube x = x * x * x;;
+  > passAnswer square;;
+  > passAnswer cube;;
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Curry vs Uncurry Functions}
+  \begin{verbatim}
+  int f(int x, int y) { ... }
+  ....
+    f(3);
+  ....
+  \end{verbatim}
+  \pause
+  \begin{verbatim}
+  > let f x y = x + y;;
+  > f 3;;
+  \end{verbatim}
+  \pause
+  \begin{verbatim}
+  > let addAnswer = f 42;;
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}{Function Sequencing}
+  \begin{itemize}
+    \item \texttt{|>}
+    \item \texttt{>>}
+    \item \texttt{<<}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Feed-Forward}
+  \begin{verbatim}
+  let inline (|>) x f = f x
+  \end{verbatim}
+  \begin{verbatim}
+  > 42 |>
+    (fun x -> x + 1) |>
+    (fun x -> x * x) |>
+    (fun x -> x - 1800) |>
+    (fun x -> x.ToString());;
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Compositions}
+  \begin{verbatim}
+  let inline (>>) f g x = g (f x)
+  let inline (<<) f g x = f (g x)
+  \end{verbatim}
+  \begin{verbatim}
+  > let f x = printf "f called with %A\n" x; x - 1;;
+  > let g x = printf "g called with %A\n" x; x + 1;;
+  > (f >> g) 4;;
+  f called with 4
+  g called with 3
+  val it : int = 4
+  > (f << g) 4;;
+  g called with 4
+  f called with 5
+  val it : int = 4
+  \end{verbatim}
+\end{frame}
+
+\section{Higher Order Functions for Lists and Sequences}
+\frame{\tableofcontents[currentsection]}
+
+\begin{frame}[fragile]{Mapping}
+  \tiny
+  \begin{itemize}
+    \item \texttt{List.map : (('a -> 'b) -> 'a list -> 'b list)}
+    \item \texttt{Seq.map : ((int -> 'a -> 'b) -> 'a list -> 'b list)}
+    \item \texttt{List.mapi : (('a -> 'b) -> seq<'a> -> seq<'b>)}
+    \item \texttt{Seq.mapi : ((int -> 'a -> 'b) -> seq<'a> -> seq<'b>)}
+  \end{itemize}
+  \begin{verbatim}
+  > List.map (fun x -> x.ToString()) [1 .. 5];;
+  val it : string list = ["1"; "2"; "3"; "4"; "5"]
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Filtering}
+  \tiny
+  \begin{itemize}
+    \item \texttt{List.filter : (('a -> bool) -> 'a list -> 'a list)}
+    \item \texttt{Seq.filter : (('a -> bool) -> seq<'a> -> seq<'a>)}
+  \end{itemize}
+  \begin{verbatim}
+  > List.filter (fun x -> x % 3 = 0) [1 .. 5];;
+  val it : int list = [3]
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Folding}
+  \tiny
+  \begin{itemize}
+    \item \texttt{List.fold : (('a -> 'b -> 'a) -> 'a -> 'b list -> 'a)}
+    \item \texttt{Seq.fold : (('a -> 'b -> 'a) -> 'a -> seq<'b> -> 'a)}
+    \item \texttt{List.foldBack: (('a -> 'b -> 'b) -> 'a list -> 'b -> 'b)}
+  \end{itemize}
+  \begin{verbatim}
+  > List.fold (*) 1 [1 .. 5];;
+  val it : int = 120
+  > List.fold (-) 100 [1 .. 5];;
+  val it : int = 85
+  > ((((100 - 1) - 2) - 3) - 4) - 5;;
+  val it : int = 85
+  > List.foldBack (-) [1 .. 5] 100;;
+  val it : int = -97
+  > 1 - (2 - (3 - (4 - (5 - 100))));;
+  val it : int = -97
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}{Reductions}
+  \small
+  \begin{itemize}
+    \item \texttt{List.reduce : (('a -> 'a -> 'a) -> 'a list -> 'a)}
+    \item \texttt{Seq.reduce : (('a -> 'a -> 'a) -> seq<'a> -> 'a)}
+    \item \texttt{List.reduceBack : (('a -> 'a -> 'a) -> 'a list -> 'a)}
+  \end{itemize}
+  \begin{itemize}
+    \item folds starting with the first/last element
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Scans}
+  \tiny
+  \begin{itemize}
+    \item \texttt{List.scan : (('a -> 'b -> 'a) -> 'a -> 'b list -> 'a list)}
+    \item \texttt{List.scanBack : (('a -> 'b -> 'b) -> 'a list -> 'b -> 'b list)}
+    \item \texttt{Seq.scan : (('a -> 'b -> 'a) -> 'a -> seq<'b> -> seq<'a>)}
+  \end{itemize}
+  \begin{verbatim}
+  > List.scan (-) 100 [1 .. 5];;
+  val it : int list = [100; 99; 97; 94; 90; 85]
+  > List.scanBack (-) [1 .. 5] 100;;
+  val it : int list = [-97; 98; -96; 99; -95; 100]
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Collecting}
+  \begin{itemize}
+    \item \texttt{map} returns a list
+    \item want to concatenate the results
     \pause
-    \item \texttt{F\#} (\texttt{.NET}, \texttt{C\#}, 2005, Microsoft Research)
+    \tiny
+    \item \texttt{List.collect : (('a -> 'b list) -> 'a list -> 'b list}
+    \item \texttt{Seq.collect : (('a -> \#seq<'c>) -> seq<'a> -> seq<'c>)}
   \end{itemize}
+  \begin{verbatim}
+  > List.collect (fun x -> [x; x+1]) [1; 2; 3];;
+  val it : int list = [1; 2; 2; 3; 3; 4]
+  > List.map (fun x -> [x; x+1]) [1; 2; 3];;
+  val it : int list list = [[1; 2]; [2; 3]; [3; 4]]
+  \end{verbatim}
 \end{frame}
 
-\begin{frame}{Features}
+\begin{frame}[fragile]{Predicate Satisfaction}
   \begin{itemize}
-    \item \texttt{.NET}
-    \item 3 paradgims encompased: functional, imperative, object-oriented
-    \item statically typed
-    \item declarative style
+    \item \texttt{List.exists : (('a -> bool) -> 'a list -> bool)}
+    \item \texttt{Seq.exists : (('a -> bool) -> seq<'a> -> bool)}
+    \item \texttt{List.forall : (('a -> bool) -> 'a list -> bool)}
+    \item \texttt{Seq.forall : (('a -> bool) -> seq<'a> -> bool)}
   \end{itemize}
+  \begin{verbatim}
+  > List.exists (fun x -> x % 2 = 0) [1; 2; 3];;
+  val it : bool = true
+  > List.forall (fun x -> x < 5) [1; 2; 3];;
+  val it : bool = true
+  \end{verbatim}
 \end{frame}
 
-\begin{frame}[fragile]{Functional Programming}
+\begin{frame}[fragile]{Finding}
   \begin{itemize}
-    \item every input has a corresponding input
-    \item $ f(x) = x + 1$
-    \pause
-    \item only if pure!!
-    \begin{itemize}
-      \item no side effects
-      \item order does not matter
-      \item easy concurrency
-    \end{itemize}
-    \item functions are values
-    \item function composition
-    \item $g(x) = x * 3$, $g(f(x)) = 3 * x + 3$
+    \item \texttt{List.find : (('a -> bool) -> 'a list -> 'a)}
+    \item \texttt{Seq.find : (('a -> bool) -> seq<'a> -> 'a)}
   \end{itemize}
   \begin{verbatim}
-  > let f x = x + 1;;
-  > let g x = x * 3;;
-  > g(f(100));;
-  val it : int = 303
+  > List.find (fun x -> x % 2 = 0) [1; 2; 3];;
+  val it : int = 2
   \end{verbatim}
 \end{frame}
 
-\begin{frame}[fragile]{Static Typing}
+\begin{frame}[fragile]{Selections by using Predicates}
+  \tiny
   \begin{itemize}
-    \item everything has a type
-    \item powerful type inferrence
-    \item proof lies in code (iif using proper type encodings)
-    \begin{itemize}
-      \item code compiles $\rightarrow$ 95\% bug-free
-    \end{itemize}
+    \item \texttt{Seq.takeWhile : (('a -> bool) -> seq<'a> -> seq<'a>)}
+    \item \texttt{Seq.skipWhile : (('a -> bool) -> seq<'a> -> seq<'a>)}
   \end{itemize}
   \begin{verbatim}
-  > f;;
-  val f : int -> int
-  > g;;
-  val g : int -> int
-  > g(f(100));;
-  val it : int = 303
+  > Seq.skipWhile (fun x -> x < 5) (Seq.initInfinite (fun x -> x));;
+  val it : seq<int> = seq [5; 6; 7; 8; ...]
+  > Seq.takeWhile (fun x -> x * x > x + 5) (Seq.initInfinite (fun x -> x));;
+  val it : seq<int> = seq []
+  > Seq.takeWhile (fun x -> x * x < x + 5) (Seq.initInfinite (fun x -> x));;
+  val it : seq<int> = seq [0; 1; 2]
   \end{verbatim}
 \end{frame}
 
-\begin{frame}[fragile]{Types as documentation}
-  Guess function from type
+\section{Pointfree style}
+\frame{\tableofcontents[currentsection]}
 
-  \begin{verbatim}
-  val f : 'a -> 'a
-  val g : bool -> bool
-  val h : 'a -> 'b -> 'a
-  val i : int -> int -> int
-  val j : float -> float -> float
-  \end{verbatim}
-
-  \pause
-
-  \begin{verbatim}
-  > let f x = x;;
-  > let g x = not x;;
-  > let h x y = x;;
-  > let i x y = x + y;;
-  > let j x y:float = x + y;;
-  \end{verbatim}
+\begin{frame}{Pointfree style}
+  \begin{itemize}[<+->]
+    \item skip the argument (\textit{point}) where function is evaluated
+    \item \texttt{let isNotError v = not (isError v)}
+    \item \texttt{let isNotError1 v = (not << isError) v}
+    \item \texttt{let isNotError2 v = isError v |> not}
+    \item \texttt{let isNotError4 = isError >> not}
+    \item \texttt{let isNotError5 = not << isError}
+    \item \texttt{isNotError4}, \texttt{isNotError5} emitted as CLR properties
+    \item the others are emitted as CLR functions
+    \item F\# has a slight implementation distinction between data and functions
+  \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Declarative Programming}
+\begin{frame}{Advantages of Point-Free style}
+  \begin{itemize}[<+->]
+    \item DRY
+    \item faster (\textit{partial function application})
+    \item assemble low-level functions from higher-order ones on the fly
+    \item skipping boilerplate
+    \item \textbf{strong} focus on \textit{what} not \textit{how}
+  \end{itemize}
+\end{frame}
+
+\section{Finishing slides}
+\frame{\tableofcontents[currentsection]}
+
+\begin{frame}[fragile]{Back to Pattern Matching}
   \begin{itemize}
-    \item focus on \textit{what} not \textit{how}
-    \item code reuse (function composition, anonymous functions, closures,
-    etc.)
+    \item $\exists$ shorter variant
   \end{itemize}
   \begin{verbatim}
-> let rec qs l =
-    match l with
-    | x::t -> let l,u =
-      List.partition ((>=)x) t in (qs l) @ x :: (qs u) 
-    | [] -> [];;
-
-val qs : 'a list -> 'a list when 'a : comparison
-
-> qs [4; 3; 2; 5];;
-val it : int list = [2; 3; 4; 5]
-  \end{verbatim}
-\end{frame}
-
-\begin{frame}[fragile]{Sorting in different languages :: C\#}
-\tiny{
-  \begin{verbatim}
-using System;
-using System.Collections.Generic;
-namespace QuickSort
-{
-    class Program
-    {
-        private static List<int> quicksort(List<int> arr)
-        {
-            List<int> loe = new List<int>(), gt = new List<int>();
-            if (arr.Count < 2) return arr;
-            int pivot = arr.Count / 2;
-            int pivot_val = arr[pivot];
-            arr.RemoveAt(pivot);
-            foreach (int i in arr)
-            {
-                if (i <= pivot_val)
-                    loe.Add(i);
-                else if (i > pivot_val)
-                    gt.Add(i);
-            }
-            List<int> resultSet = new List<int>();
-            resultSet.AddRange(quicksort(loe));
-            gt.Add(pivot_val);
-            resultSet.AddRange(quicksort(gt));
-            return resultSet;
-        }
-    }
-}
-  \end{verbatim}
-}
-\end{frame}
-
-\begin{frame}[fragile]{Sorting in different languages :: Scheme, Haskell F\#}
-\tiny{
-  \begin{verbatim}
-(define (quicksort l gt?)
-  (if (null? l) '()
-      (append (quicksort (filter (lambda (x) (gt? (car l) x)) (cdr l)) gt?)
-              (list (car l))
-              (quicksort (filter (lambda (x) (not (gt? (car l) x))) (cdr l)) gt?))))
-  \end{verbatim}
-
-  \begin{verbatim}
-qsort []     = []
-qsort (x:xs) = qsort [y | y <- xs, y < x] ++ [x] ++ qsort [y | y <- xs, y >= x]
-  \end{verbatim}
-
-  \begin{verbatim}
-let rec qsort = function
-    [] -> []
-    | hd :: tl ->
-        let less, greater = List.partition ((>=) hd) tl
-        List.concat [qsort less; [hd]; qsort greater]
-  \end{verbatim}
-}
-\end{frame}
-
-\begin{frame}[fragile]{F\# Variables}
-  \texttt{let varName [: type] = value}
-  \tiny{
-  \begin{verbatim}
-  > let answer = 42;;
-  val answer : int = 42
-
-  > let pi : double = 3.14159;;
-  val pi : double = 3.14159
-
-  > let f = fun x -> x;;
-  val f : 'a -> 'a
-
-  > let g x = x;;
-  val g : 'a -> 'a
-
-  > let list = [1; 2; 3; 4];;
-  val list : int list = [1; 2; 3; 4]
-
-  > let tuple = 1,2, 3, "ana";;
-  val tuple : int * int * int * string = (1, 2, 3, "ana")
-  \end{verbatim}
-  }
-\end{frame}
-
-\begin{frame}[fragile]{F\# Functions}
-  2 types:
-  \begin{itemize}
-    \item explicit arguments
-    \begin{verbatim}
-  > let g x = x;;
-  val g : 'a -> 'a
-    \end{verbatim}
-    \item lambda-abstractions (anonymous)
-    \begin{verbatim}
-    > fun x -> x;;
-    val it : 'a -> 'a = <fun:clo@116-3>
-    \end{verbatim}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Function sequencing}
-  \begin{itemize}
-    \item pipe-forward \texttt{|>}
-    \item function-compose \texttt{>>}
-  \end{itemize}
-  \begin{verbatim}
-  > let f x = 2 * x;;
-  val f : int -> int
-
-  > let g = f >> f;;
-  val g : (int -> int)
-
-  > g 5;;
-  val it : int = 20
-  > f 5 |> f;;
-  val it : int = 20
-  > f 5 |> fun x -> x;;
-  val it : int = 10
-  \end{verbatim}
-\end{frame}
-
-\begin{frame}[fragile]{Pattern matching}
-  Makes reading code easier (no more \texttt{if}s and \texttt{elif}s)
-  \begin{verbatim}
-  > let f x = if x <= 0 then 0 else x - 1;;
-
-  > let g x = match x with
-              0 -> 0
-              | x -> x - 1;;
-
-  > let h x = match x with
-              | 0 -> 0
-              | x -> x - 1;;
-  \end{verbatim}
-\end{frame}
-
-\begin{frame}[fragile]{Recursive definitions}
-  Names are visible \textbf{after} their definition ends.
-  \begin{verbatim}
-  > let rec fact x = match x with
-                     0 -> 1
-                     | x -> x * fact (x - 1);;
-  val fact : int -> int
-
-  > fact 3;;
-  val it : int = 6
-  \end{verbatim}
-\end{frame}
-
-\begin{frame}[fragile]{Lists[1]}
-  \begin{itemize}
-    \item bread and butter of functional programming
-    \item ordered collection of values
-    \item \texttt{cons} (\texttt{::}), \texttt{head}, \texttt{tail}
-  \end{itemize}
-  \begin{verbatim}
-  > [];;
-  val it : 'a list = []
-  > 2 :: [];;
-  val it : int list = [2]
-  > 2 :: (3 :: []);;
-  > val it : int list = [2; 3]
-  > 2 :: (3 :: [42; 45]);;
-  val it : int list = [2; 3; 42; 45]
-  \end{verbatim}
-\end{frame}
-
-\begin{frame}[fragile]{Lists[2]}
-  \begin{itemize}
-    \item Faster generation: ranges and init
-    \item List from string
-  \end{itemize}
-  \begin{verbatim}
-  > List.init 5 (fun x -> x * x);;
-  > val it : int list = [0; 1; 4; 9; 16]
-
-  > [0 .. 5];;
-  val it : int list = [0; 1; 2; 3; 4; 5]
-
-  > List.ofSeq "Winter is coming";;
-  val it : char list =
-    ['W'; 'i'; 'n'; 't'; 'e'; 'r'; ' '; 'i'; 's'; ' ';
-       'c'; 'o'; 'm'; 'i'; 'n'; 'g']
-  \end{verbatim}
-\end{frame}
-
-\begin{frame}[fragile]{Lists[3]}
-  \begin{itemize}
-    \item Same type restriction
-  \end{itemize}
-  \tiny{
-  \begin{verbatim}
-> [3; 3.14];;
-
-  [3, 3.14];;
-  ----^^^^
-stdin(195,5): error FS0001: This expression was expected to have type
-    int    
-but here has type
-    float    
-
-> [3; 4; "random"];;
-
-  [3; 4; "random"];;
-  -------^^^^^^^^
-stdin(196,8): error FS0001: This expression was expected to have type
-    int    
-but here has type
-    string
-  \end{verbatim}
-}
-\end{frame}
-
-\begin{frame}[fragile]{Lists[4]}
-  \begin{itemize}
-    \item Element access
-  \end{itemize}
-\tiny{
-  \begin{verbatim}
-> List.nth [1;2;3;4] 3;;
-val it : int = 4
+  > let rec f = function
+      | [] -> 0
+      | _::xs -> 1 + f xs;;
   \end{verbatim}
   \pause
+  Translated as
   \begin{verbatim}
-> List.nth [1;2;3;4] 5;;
-System.ArgumentException: The index was outside the range of elements in the list.
-Parameter name: index
-   at Microsoft.FSharp.Collections.ListModule.Get[T](FSharpList`1 list, Int32 index)
-   at <StartupCode$FSI_0110>.$FSI_0110.main@()
-Stopped due to error
+  > let rec f = (fun x -> match x with
+      | [] -> 0
+      | _::xs -> 1 + f xs
+      );;
   \end{verbatim}
-}
 \end{frame}
 
-\begin{frame}[fragile]{Lists[5]}
-  \begin{itemize}
-    \item Pattern matching on constructors
+\begin{frame}{Recap}
+  \begin{itemize}[<+->]
+    \item functions are data
+    \item F\# functions are curry
+    \item lists and sequences
+    \item common patterns captured in \texttt{List.} and \texttt{Seq.}
+    functions
+    \item point-free style
   \end{itemize}
-  \tiny{
-  \begin{verbatim}
-> let isEmpty l = match l with
-                  [] -> true
-                  | x::xs -> false;; //or | _ -> false
-val isEmpty : 'a list -> bool
-
-> isEmpty [2;3;4];;
-val it : bool = false
-> isEmpty [2];;
-val it : bool = false
-> isEmpty [];;
-val it : bool = true
-  \end{verbatim}
-  }
-\end{frame}
-
-\begin{frame}[fragile]{Lists[6]}
-  \begin{itemize}
-    \item Using recursion on lists
-  \end{itemize}
-\tiny{
-  \begin{verbatim}
-> let rec len l = match l with
-                  [] -> 0
-                  | _ :: xs -> 1 + len xs;;
-
-val len : 'a list -> int
-
-> len [1;2;3;4];;
-val it : int = 4
-> len [];;
-val it : int = 0
-  \end{verbatim}
-  \pause
-  \begin{verbatim}
-> let rec sum l = match l with
-                  [] -> 0
-                  | x :: xs -> x + sum xs;;
-
-val sum : int list -> int
-
-> sum [1 .. 5];;
-val it : int = 15
-  \end{verbatim}
-}
-\end{frame}
-
-\begin{frame}[fragile]{Tuples}
-  \begin{itemize}
-    \item also known as product types
-  \end{itemize}
-\tiny{
-  \begin{verbatim}
-> 1,2,3;;
-val it : int * int * int = (1, 2, 3)
-
-> (1, 2, 3);;
-val it : int * int * int = (1, 2, 3)
-
-> 1, 3.14, "ana are mere";;
-val it : int * float * string = (1, 3.14, "ana are mere")
-
-> let f x = match x with (x,_,_) -> x;;
-val f : 'a * 'b * 'c -> 'a
-
-> f 3,4,5;;
-
-  let f x = match x with (x,_,_) -> x;;
-  --^
-
-stdin(265,3): error FS0001: This expression was expected to have type
-    'a * 'b * 'c    
-but here has type
-    int
-
-> f (3, 4, 5);;
-> val it : int = 3
-  \end{verbatim}
-}
 \end{frame}
 
 \begin{frame}[fragile]{Assignment}
@@ -507,11 +582,12 @@ but here has type
     \item next talk will start with discussion of solutions
   \end{itemize}
   \pause
-  \begin{itemize}
-    \item Implement a \textit{Caesar cipher}
-    \item For input \texttt{cipher "hello" 13}
-    \item Should produce \texttt{uryyb}
-  \end{itemize}
+  \begin{block}{Problem from Project Euler}
+  A palindromic number reads the same both ways. The largest palindrome made
+  from the product of two 2-digit numbers is 9009 = 91*99.
+
+  Find the largest palindrome made from the product of two 3-digit numbers.
+  \end{block}
 \end{frame}
 
 \end{document}
