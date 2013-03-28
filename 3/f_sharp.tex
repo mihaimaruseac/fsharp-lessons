@@ -40,11 +40,18 @@
 \end{frame}
 
 \begin{frame}[fragile]{Solution (1)}
-  TODO
-\end{frame}
-
-\begin{frame}[fragile]{Solution(2)}
-  TODO
+\small
+  \begin{verbatim}
+let rec digits = function
+      | n when n < 10 -> [n]
+      | n -> (n % 10) :: (digits (n / 10))
+let revNumber = digits >> List.fold (fun x y -> y + 10 * x) 0
+let isPalindrom x = x = revNumber x
+[ for a in 999 .. -1 .. 100 do
+    for b in 999 .. -1 .. 100 do
+    let x = a * b
+    if isPalindrom x then yield x,a,b] |> List.head;;
+\end{verbatim}
 \end{frame}
 
 \section{Option Types}
@@ -87,7 +94,7 @@
   \end{verbatim}
 \end{frame}
 
-\begin{frame}[fragile]{Pattern Matching}
+\begin{frame}[fragile,label=maybe]{Pattern Matching}
   \begin{verbatim}
   > let isFortyTwo = function
         | Some(42) -> true
@@ -217,106 +224,525 @@ let getQuadrant = function
 
 \againframe{tuples}
 
-\begin{frame}{Unions of Constructors}
-  TODO
+\begin{frame}[fragile]{Unions of Constructors}
+  \begin{verbatim}
+type switchstate =
+    | On
+    | Off
+    | Adjustable of float
+  \end{verbatim}
 \end{frame}
 
-\begin{frame}{Sum and Product Types}
-  TODO
+\begin{frame}[fragile]{Sum and Product Types}
+  \begin{verbatim}
+type firstType = 
+    | C1
+    | C2
+type secondType =
+    | C21 of bool
+    | C22 of bool
+    | C23 of bool
+type thirdType = { C31 : bool; C31 : bool };;
+  \end{verbatim}
+  How many values in each type?
 \end{frame}
 
-\begin{frame}{Union of All Datatypes}
-  TODO: type variables in constructors
+\begin{frame}[fragile]{Union of All Datatypes}
+  \begin{itemize}[<+->]
+    \item generalize construction
+    \item type variables
+    \item OCaml vs .NET style
+  \end{itemize}
+  \pause
+  \begin{verbatim}
+  type 'a tree =
+      | Leaf of 'a
+      | Node of 'a tree * 'a tree
+  \end{verbatim}
+  \begin{verbatim}
+  type tree<'a> =
+      | Leaf of 'a
+      | Node of tree<'a> * tree<'a>
+  \end{verbatim}
 \end{frame}
 
-\begin{frame}{Pattern Matching}
-  TODO
+\begin{frame}[fragile]{Pattern Matching}
+  \begin{verbatim}
+  let toggle = function
+      | On -> Off
+      | Off -> On
+      | Adjustable(brightness) -> ...;;
+  \end{verbatim}
 \end{frame}
 
-\begin{frame}{Known Union Types}
-  TODO: list, option
+\againframe{maybe}
+
+\begin{frame}[fragile]{Known Union Types}
+  \begin{verbatim}
+  type 'a option =
+      | Some of 'a
+      | None
+  \end{verbatim}
+  \pause
+  \begin{verbatim}
+  type 'a list = 
+      | Cons of 'a * 'a list
+      | Nil
+  \end{verbatim}
 \end{frame}
 
-\begin{frame}{Propositional Logic (Example)}
-  TODO: work with them
+\begin{frame}[fragile]{Propositional Logic (Example)}
+  \begin{verbatim}
+  type proposition =
+      | True
+      | Not of proposition
+      | And of proposition * proposition
+      | Or of proposition * proposition
+  \end{verbatim}
+  Write \texttt{eval : proposition -> bool}.
 \end{frame}
 
-\begin{frame}{Stacks (Example)}
-  TODO: same (stack == list)
+\begin{frame}[fragile]{Propositional Logic (Example)}
+  \begin{verbatim}
+  let rec eval = function
+      | True -> ...
+      | Not(prop) -> ...
+      | And(prop1, prop2) -> ...
+      | Or(prop1, prop2) -> ...
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Propositional Logic (Example)}
+  \begin{verbatim}
+  let rec eval = function
+      | True -> true
+      | Not(prop) -> ...
+      | And(prop1, prop2) -> ...
+      | Or(prop1, prop2) -> ...
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Propositional Logic (Example)}
+  \begin{verbatim}
+  let rec eval = function
+      | True -> true
+      | Not(prop) -> not (eval(prop))
+      | And(prop1, prop2) -> ...
+      | Or(prop1, prop2) -> ...
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Propositional Logic (Example)}
+  \begin{verbatim}
+  let rec eval = function
+      | True -> true
+      | Not(prop) -> not (eval(prop))
+      | And(prop1, prop2) -> eval(prop1) && eval(prop2)
+      | Or(prop1, prop2) -> eval(prop1) || eval(prop2)
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Stacks (Example)}
+  \begin{itemize}[<+->]
+    \item first in - last out
+    \item as a list (\texttt{cons}, \texttt{skip 1})
+    \item as a proper data structure
+  \end{itemize}
+  \pause
+  \begin{verbatim}
+  type 'a stack =
+      | EmptyStack
+      | StackNode of 'a * 'a stack
+  let stack = StackNode(1, StackNode(2, StackNode(3, 
+      StackNode(4, StackNode(5, EmptyStack)))))
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Stacks (Example)}
+  \texttt{head : 'a stack -> 'a}
+  \pause
+  \begin{verbatim}
+  let head = function
+          | EmptyStack -> ...
+          | StackNode(hd, tl) -> ...
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Stacks (Example)}
+  \texttt{head : 'a stack -> 'a}
+  \begin{verbatim}
+  let head = function
+          | EmptyStack -> failwith "Empty stack"
+          | StackNode(hd, tl) -> ...
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Stacks (Example)}
+  \texttt{head : 'a stack -> 'a}
+  \begin{verbatim}
+  let head = function
+          | EmptyStack -> failwith "Empty stack"
+          | StackNode(hd, tl) -> hd
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Stacks (Example)}
+  \texttt{tail : 'a stack -> 'a stack}
+  \pause
+  \begin{verbatim}
+  let head = function
+          | EmptyStack -> failwith "Empty stack"
+          | StackNode(hd, tl) -> tl
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Stacks (Example)}
+  \texttt{update : int -> 'a -> 'a stack -> 'a stack}
+  \pause
+  \small
+  \begin{verbatim}
+  let rec update index value s =
+      match index, s with
+          | index, EmptyStack -> failwith "Index out of range"
+          | 0, StackNode(hd, tl) -> StackNode(value, tl)
+          | n, StackNode(hd, tl) -> StackNode(hd, 
+              update (index - 1) value tl)
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Immutable Data Structures}
+  \begin{itemize}[<+->]
+    \item no destructive updates
+    \item copying and sharing
+  \end{itemize}
+  \pause
+  \begin{verbatim}
+         0      1      2      3      4
+          ___    ___    ___    ___    ___ 
+let x =  |_1_|->|_2_|->|_3_|->|_4_|->|_5_|->Empty
+                              ^
+                             /
+          ___    ___    ___ /
+let y =  |_1_|->|_2_|->|_9_|
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Stacks (Example)}
+  \texttt{append : 'a stack -> 'a stack -> 'a stack}
+  \pause
+  \small
+  \begin{verbatim}
+  let rec append x y =
+      match x with
+          | EmptyStack -> y
+          | StackNode(hd, tl) -> StackNode(hd, append tl y)
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Stacks (Example)}
+  \texttt{map : ('a -> 'b) -> 'a stack -> 'b stack}
+  \pause
+  \small
+  \begin{verbatim}
+  let rec map f = function
+          | EmptyStack -> EmptyStack
+          | StackNode(hd, tl) -> StackNode(f hd, map f tl)
+  \end{verbatim}
 \end{frame}
 
 \begin{frame}{Queue (Example)}
-  TODO: same + 2 stacks
+  \begin{itemize}[<+->]
+    \item first in - first out
+    \item as a list (\texttt{cons}, \texttt{take (length - 1)})
+    \item as a proper data structure containing 2 stacks
+  \end{itemize}
+  \pause
+  Left as exercise
 \end{frame}
 
-\begin{frame}{Binary Trees (Example)}
-  TODO: same
+\begin{frame}[fragile]{Binary Trees (Example)}
+  \begin{verbatim}
+  type 'a tree =
+      | EmptyTree
+      | TreeNode of 'a * 'a tree * 'a tree
+  \end{verbatim}
+  \pause
+  Binary Search Tree - left as exercise
+\end{frame}
+
+\begin{frame}[fragile]{Binary Trees (Example)}
+  \texttt{map : ('a -> 'b) -> 'a tree -> 'b tree}
+  \pause
+  \small
+  \begin{verbatim}
+  let rec map f = function
+      | EmptyTree -> EmptyTree
+      | TreeNode(n, l, r) -> TreeNode(f n, map f l, map f r)
+  \end{verbatim}
 \end{frame}
 
 \section{Lazy Data Structures}
 \frame{\tableofcontents[currentsection]}
 
 \begin{frame}{Efficiency of Eager Immutable Data Structures}
-  TODO
+  \begin{itemize}[<+->]
+    \item not as efficient as imperative equivalents
+    \item appending 2 stacks - $O(n)$ time
+    \item laziness - $O(1)$ (amortized) time
+  \end{itemize}
 \end{frame}
 
-\begin{frame}{A Lazy Stack}
-  TODO
+\begin{frame}[fragile]{A Lazy Stack}
+  \begin{verbatim}
+  type 'a lazyStack =
+      | Node of Lazy<'a * 'a lazyStack>
+      | EmptyStack
+  \end{verbatim}
+  \pause
+  \begin{verbatim}
+  let (|Cons|Nil|) = function
+      | Node(item) ->
+          let hd, tl = item.Force()
+          Cons(hd, tl)
+      | EmptyStack -> Nil
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{A Lazy Stack}
+  \begin{verbatim}
+  let hd = function
+      | Cons(hd, tl) -> hd
+      | Nil -> failwith "empty"
+
+  let tl = function
+      | Cons(hd, tl) -> tl
+      | Nil -> failwith "empty"
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{A Lazy Stack}
+  \begin{verbatim}
+let rec append x y =
+    match x with
+    | Cons(hd, tl) -> Node(
+        lazy(printfn "appending... got %A" hd;
+        hd, append tl y))
+    | Nil -> y
+
+let rec iter f = function
+    | Cons(hd, tl) -> f(hd); iter f tl
+    | Nil -> ()
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{A Lazy Stack}
+  \begin{verbatim}
+> let x = cons(1, cons(2, cons(3, cons(4, EmptyStack))));;
+val x : int lazyStack = Node <unevaluated>
+> let y = cons(5, cons(6, cons(7, EmptyStack)));;
+val y : int lazyStack = Node <unevaluated>
+> let z = append x y;;
+val z : int lazyStack = Node <unevaluated>
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{A Lazy Stack}
+  \begin{verbatim}
+> hd z;;
+appending... got 1
+val it : int = 1
+
+> hd (tl (tl z) );;
+appending... got 2
+appending... got 3
+val it : int = 3
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{A Lazy Stack}
+  \begin{verbatim}
+> iter (fun x -> printfn "%i" x) z;;
+1
+2
+3
+appending... got 4
+4
+5
+6
+7
+  \end{verbatim}
 \end{frame}
 
 \begin{frame}{Why Immutability?}
-  TODO
+  \begin{itemize}[<+->]
+    \item old structure stays
+    \item lock-less code
+    \item easy concurrency
+    \item theorems for free
+    \item undo for free
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Immutable Data Structures in Imperative Code?}
-  TODO
+  Possible
+  \pause
+  and recommended from time to time.
 \end{frame}
 
 \section{Caching Results}
 \frame{\tableofcontents[currentsection]}
 
 \begin{frame}{Immutability = Multiple Copies}
-  TODO
+  \begin{itemize}[<+->]
+    \item modifying a data structure = creating a new copy
+    \item garbage-collection
+    \item when? how often?
+    \item reusing data?
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Caching Pointfree Functions}
-  TODO
+  \begin{itemize}[<+->]
+    \item point-free functions as .NET properties
+    \item function is evaluated once
+    \item cached result
+  \end{itemize}
 \end{frame}
 
-\begin{frame}{Fibonacci Function}
-  TODO
+\begin{frame}[fragile]{No Caching}
+\small
+\begin{verbatim}
+> let isNebraskaCity_bad city =
+    let cities =
+        printfn "Creating cities Set"
+        ["Bellevue"; "Omaha"; "Lincoln"; "Papillion"]
+        |> Set.of_list
+
+    cities.Contains(city);;
+
+val isNebraskaCity_bad : string -> bool
+
+> isNebraskaCity_bad "Lincoln";;
+Creating cities Set
+val it : bool = true
+
+> isNebraskaCity_bad "Washington";;
+Creating cities Set
+val it : bool = false
+\end{verbatim}
 \end{frame}
 
-\begin{frame}{Memoization}
-  TODO
+\begin{frame}[fragile]{Caching}
+\small
+\begin{verbatim}
+> let isNebraskaCity_good =
+    let cities =
+        printfn "Creating cities Set"
+        ["Bellevue"; "Omaha"; "Lincoln"; "Papillion"]
+        |> Set.of_list
+
+    fun city -> cities.Contains(city);;
+Creating cities Set
+
+val isNebraskaCity_good : (string -> bool)
+
+> isNebraskaCity_good "Lincoln";;
+val it : bool = true
+
+> isNebraskaCity_good "Washington";;
+val it : bool = false
+\end{verbatim}
 \end{frame}
 
-\begin{frame}{Generic Memoizer}
-  TODO
+\begin{frame}[fragile]{Fibonacci Function}
+  \begin{verbatim}
+  > let rec fib n =
+      if n = 0I then 0I
+      elif n = 1I then 1I
+      else fib (n - 1I) + fib(n - 2I);;
+  \end{verbatim}
+  \begin{verbatim}
+  > #time;;
+  > fib 35I;;
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Memoization}
+  Keep calculated values in memory.
+  \small
+  \begin{verbatim}
+> let rec fib =
+    let dict = new System.Collections.Generic.Dictionary<_,_>()
+    fun n ->
+        match dict.TryGetValue(n) with
+        | true, v -> v
+        | false, _ -> 
+            let temp =
+                if n = 0I then 0I
+                elif n = 1I then 1I
+                else fib (n - 1I) + fib(n - 2I)
+            dict.Add(n, temp)
+            temp;;
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Generic Memoizer}
+\small
+  \begin{verbatim}
+let memoize f =
+    let dict = new System.Collections.Generic.Dictionary<_,_>()
+    fun n ->
+        match dict.TryGetValue(n) with
+        | (true, v) -> v
+        | _ ->
+            let temp = f(n)
+            dict.Add(n, temp)
+            temp
+ 
+let rec fib = memoize(fun n ->
+    if n = 0I then 0I
+    elif n = 1I then 1I
+    else fib (n - 1I) + fib (n - 2I) )
+  \end{verbatim}
 \end{frame}
 
 \begin{frame}{Performance Concerns}
-  TODO: profile, premature optimization...
+  \begin{itemize}[<+->]
+    \item laziness + memoization = big win
+    \item tie the knot
+    \item computing hashes takes time
+    \item always profile
+  \end{itemize}
 \end{frame}
 
-\begin{frame}{Lazy Values and Caching}
-  TODO
+\begin{frame}[fragile]{Lazy Values and Caching}
+  All lazy values are computed only once.
+\small
+  \begin{verbatim}
+> let x = seq {
+         for a in 1 .. 5 -> printfn "Got %i" a; a } |> Seq.cache;;
+val x : seq<int>
+
+> let y = Seq.take 3 x;;
+val y : seq<int>
+
+> Seq.reduce (+) y;;
+Got 1
+Got 2
+Got 3
+val it : int = 9
+
+> Seq.reduce (+) y;;
+val it : int = 9
+
+> Seq.reduce (+) x;;
+Got 4
+...
+  \end{verbatim}
 \end{frame}
 
 \section{Finishing slides}
 \frame{\tableofcontents[currentsection]}
-
-\begin{frame}{Units of Measure :: Why}
-  TODO
-\end{frame}
-
-\begin{frame}{Units of Measure :: How}
-  TODO
-\end{frame}
-
-\begin{frame}{Units of Measure :: Generalizing}
-  TODO
-\end{frame}
 
 \begin{frame}{Recap}
   \begin{itemize}[<+->]
@@ -325,7 +751,6 @@ let getQuadrant = function
     \item sets and maps
     \item discriminated unions
     \item caching
-    \item units of measure
   \end{itemize}
 \end{frame}
 
@@ -333,6 +758,8 @@ let getQuadrant = function
   \begin{itemize}
     \item Chris Okasaki - \textit{Functional Data Structures}
     \item Steve Skiena - \textit{The Algorithm Design Manual}
+    \item
+    http://stackoverflow.com/questions/3208258/memoization-in-haskell/3209189\#3209189
   \end{itemize}
 \end{frame}
 
@@ -344,7 +771,9 @@ let getQuadrant = function
   \end{itemize}
   \pause
   \begin{block}{Joining tables}
-  TODO
+  Starting from lists \texttt{(name * age) list}, \texttt{(name * phone) list}
+and \texttt{(name * location) list} define \texttt{(name * age * phone *
+location) list} containing all values from all 3 lists.
   \end{block}
 \end{frame}
 
