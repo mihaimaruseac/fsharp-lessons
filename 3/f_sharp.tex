@@ -162,15 +162,54 @@ let getQuadrant = function
 \frame{\tableofcontents[currentsection]}
 
 \begin{frame}{Sets}
-  TODO
+  \begin{itemize}[<+->]
+    \item container for items
+    \item no duplicates
+    \item no order guarantee
+    \item \texttt{Set.empty.Add(1).Add(2).Add(7)}
+    \item \texttt{Set.ofList ["Mercury"; "Venus"; "Earth"; "Mars";]}
+    \item functions in \texttt{Set} module (\texttt{map}, \texttt{union},
+    \texttt{contains}, $\ldots$)
+  \end{itemize}
 \end{frame}
 
-\begin{frame}{Maps}
-  TODO
+\begin{frame}[fragile]{Maps}
+  \begin{itemize}[<+->]
+    \item special sets
+    \item \textit{key} - \textit{value} pairs
+  \end{itemize}
+  \pause
+  \begin{verbatim}
+> let holidays =
+    Map.empty.
+        Add("Christmas", "Dec. 25").
+        Add("Halloween", "Oct. 31");;
+> let monkeys = 
+    [ "Squirrel Monkey", "Simia sciureus";
+        "Chimpanzee", "Pan troglodytes" ]
+    |> Map.ofList;;
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Maps (2)}
+  \begin{itemize}[<+->]
+    \item \texttt{.[key]} access
+  \end{itemize}
+  \begin{verbatim}
+  > holidays.["Christmas"];;
+  \end{verbatim}
+  \pause
+  \begin{itemize}
+    \item functions in \texttt{Map} module (\texttt{exists}, \texttt{filter},
+    \texttt{tryfind}, $\ldots$)
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Performance}
-  TODO
+  \begin{itemize}[<+->]
+    \item immutable red-black trees
+    \item search, insert, delete - $O(n)$
+  \end{itemize}
 \end{frame}
 
 \section{Discriminated Unions}
