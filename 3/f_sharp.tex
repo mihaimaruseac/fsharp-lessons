@@ -22,6 +22,8 @@
     \item list and sequences
     \item curry functions
     \item point-free programming
+    \item \texttt{take}, \texttt{skip}
+    \item \texttt{takeWhile}, \texttt{skipWhile}
     \item \texttt{map}
     \item \texttt{filter}
     \item \texttt{fold}
@@ -49,42 +51,111 @@
 \frame{\tableofcontents[currentsection]}
 
 \begin{frame}{List searching}
-  TODO
+  \begin{itemize}[<+->]
+    \item \texttt{List.find : (('a -> bool) -> 'a list -> 'a)}
+    \item What if element is not found in list?
+    \item Runtime error...
+    \item Fail if precondition is unmet
+    \item Need way to signal that functions might fail
+    \item \texttt{List.tryFind :\\ (('a -> bool) -> 'a list -> 'a option)}
+  \end{itemize}
 \end{frame}
 
-\begin{frame}{Option}
-  TODO
+\begin{frame}[fragile]{Option}
+  \begin{itemize}
+    \item \texttt{None} - no value to return
+    \item \texttt{Some x} - result available
+  \end{itemize}
+  \pause
+  \begin{verbatim}
+  > let safediv x y =
+          match y with
+              | 0 -> None
+              | _ -> Some(x/y);;
+  \end{verbatim}
 \end{frame}
 
-\begin{frame}{Option is not \texttt{null}}
-  TODO
+\begin{frame}[fragile]{Option is not \texttt{null}}
+  \begin{itemize}
+    \item conceptually similar
+    \item different semantics
+    \item programmer \textbf{forced} to treat both cases
+  \end{itemize}
+  \begin{verbatim}
+  val div : int -> int -> int
+  val safediv : int -> int -> int option
+  \end{verbatim}
 \end{frame}
 
-\begin{frame}{Pattern Matching}
-  TODO
+\begin{frame}[fragile]{Pattern Matching}
+  \begin{verbatim}
+  > let isFortyTwo = function
+        | Some(42) -> true
+        | Some(_) -> false
+        | None -> false;;
+  \end{verbatim}
 \end{frame}
 
 \begin{frame}{Other Functions}
-  TODO
+  \begin{itemize}[<+->]
+    \item \texttt{get : 'a option -> 'a}
+    \item \texttt{isNone, isSome : 'a option -> bool}
+    \item \texttt{map : ('a -> 'b) -> 'a option -> 'b option}
+    \item \texttt{iter : ('a -> unit) -> 'a option -> unit}
+  \end{itemize}
 \end{frame}
 
 \section{Records}
 \frame{\tableofcontents[currentsection]}
 
 \begin{frame}[label=tuples]{Tuples}
-  TODO
+  \begin{itemize}
+    \item \texttt{(3.14, "Ana", 42)}
+    \item semantics?
+    \item extracting values?
+    \item cloning?
+    \item type safety? (\texttt{point2D} vs \texttt{pair})
+  \end{itemize}
 \end{frame}
 
-\begin{frame}{Records}
-  TODO
+\begin{frame}[fragile]{Records}
+  \begin{itemize}
+    \item giving name to values in tuples
+    \item method to properly extract values
+  \end{itemize}
+  \begin{verbatim}
+  > type website = { Title : string; Url : string };;
+  > let homepage = { Title = "Google";
+        Url = "http://www.google.com" };;
+  > { Url = "http://www.microsoft.com/";
+        Title = "Microsoft Corporation" };;
+  > website.Title;;
+  \end{verbatim}
 \end{frame}
 
-\begin{frame}{Cloning Records}
-  TODO
+\begin{frame}[fragile]{Cloning Records}
+  \begin{itemize}
+    \item immutable
+    \item changing = creating a clone
+  \end{itemize}
+  \begin{verbatim}
+  > type coords = { X : float; Y : float };;
+  > let start = { X = 1.0; Y = 2.0 };;
+  > let end = { start with X = 15.5 };;
+  \end{verbatim}
 \end{frame}
 
-\begin{frame}{Pattern Matching}
-  TODO
+\begin{frame}[fragile]{Pattern Matching}
+  \begin{verbatim}
+type coords = { X : float; Y : float }
+ 
+let getQuadrant = function
+    | { X = 0.0; Y = 0.0 } -> "Origin"
+    | item when item.X >= 0.0 && item.Y >= 0.0 -> "I"
+    | item when item.X <= 0.0 && item.Y >= 0.0 -> "II"
+    | item when item.X <= 0.0 && item.Y <= 0.0 -> "III"
+    | item when item.X >= 0.0 && item.Y <= 0.0 -> "IV"
+  \end{verbatim}
 \end{frame}
 
 \section{Sets and Maps}
