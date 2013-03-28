@@ -1,0 +1,241 @@
+\documentclass{beamer}
+
+\usepackage{hyperref}
+\mode<presentation>
+
+\title{F\#.3 : Immutable Data Structures}
+\author{Mihai Maruseac, ROSEdu\\mihai@rosedu.org}
+
+\setbeamertemplate{frametitle continuation}[from second]
+\setbeamertemplate{footline}[frame number]
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}
+  \tableofcontents
+\end{frame}
+
+\begin{frame}{Last time...}
+  \begin{itemize}[<+->]
+    \item list and sequences
+    \item curry functions
+    \item point-free programming
+    \item \texttt{map}
+    \item \texttt{filter}
+    \item \texttt{fold}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Last Assignment}
+  \begin{block}{Problem from Project Euler}
+  A palindromic number reads the same both ways. The largest palindrome made
+  from the product of two 2-digit numbers is 9009 = 91*99.
+
+  Find the largest palindrome made from the product of two 3-digit numbers.
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Solution (1)}
+  TODO
+\end{frame}
+
+\begin{frame}[fragile]{Solution(2)}
+  TODO
+\end{frame}
+
+\section{Option Types}
+\frame{\tableofcontents[currentsection]}
+
+\begin{frame}{List searching}
+  TODO
+\end{frame}
+
+\begin{frame}{Option}
+  TODO
+\end{frame}
+
+\begin{frame}{Option is not \texttt{null}}
+  TODO
+\end{frame}
+
+\begin{frame}{Pattern Matching}
+  TODO
+\end{frame}
+
+\begin{frame}{Other Functions}
+  TODO
+\end{frame}
+
+\section{Records}
+\frame{\tableofcontents[currentsection]}
+
+\begin{frame}[label=tuples]{Tuples}
+  TODO
+\end{frame}
+
+\begin{frame}{Records}
+  TODO
+\end{frame}
+
+\begin{frame}{Cloning Records}
+  TODO
+\end{frame}
+
+\begin{frame}{Pattern Matching}
+  TODO
+\end{frame}
+
+\section{Sets and Maps}
+\frame{\tableofcontents[currentsection]}
+
+\begin{frame}{Sets}
+  TODO
+\end{frame}
+
+\begin{frame}{Maps}
+  TODO
+\end{frame}
+
+\begin{frame}{Performance}
+  TODO
+\end{frame}
+
+\section{Discriminated Unions}
+\frame{\tableofcontents[currentsection]}
+
+\againframe{tuples}
+
+\begin{frame}{Unions of Constructors}
+  TODO
+\end{frame}
+
+\begin{frame}{Sum and Product Types}
+  TODO
+\end{frame}
+
+\begin{frame}{Union of All Datatypes}
+  TODO: type variables in constructors
+\end{frame}
+
+\begin{frame}{Pattern Matching}
+  TODO
+\end{frame}
+
+\begin{frame}{Known Union Types}
+  TODO: list, option
+\end{frame}
+
+\begin{frame}{Propositional Logic (Example)}
+  TODO: work with them
+\end{frame}
+
+\begin{frame}{Stacks (Example)}
+  TODO: same (stack == list)
+\end{frame}
+
+\begin{frame}{Queue (Example)}
+  TODO: same + 2 stacks
+\end{frame}
+
+\begin{frame}{Binary Trees (Example)}
+  TODO: same
+\end{frame}
+
+\section{Lazy Data Structures}
+\frame{\tableofcontents[currentsection]}
+
+\begin{frame}{Efficiency of Eager Immutable Data Structures}
+  TODO
+\end{frame}
+
+\begin{frame}{A Lazy Stack}
+  TODO
+\end{frame}
+
+\begin{frame}{Why Immutability?}
+  TODO
+\end{frame}
+
+\begin{frame}{Immutable Data Structures in Imperative Code?}
+  TODO
+\end{frame}
+
+\section{Caching Results}
+\frame{\tableofcontents[currentsection]}
+
+\begin{frame}{Immutability = Multiple Copies}
+  TODO
+\end{frame}
+
+\begin{frame}{Caching Pointfree Functions}
+  TODO
+\end{frame}
+
+\begin{frame}{Fibonacci Function}
+  TODO
+\end{frame}
+
+\begin{frame}{Memoization}
+  TODO
+\end{frame}
+
+\begin{frame}{Generic Memoizer}
+  TODO
+\end{frame}
+
+\begin{frame}{Performance Concerns}
+  TODO: profile, premature optimization...
+\end{frame}
+
+\begin{frame}{Lazy Values and Caching}
+  TODO
+\end{frame}
+
+\section{Finishing slides}
+\frame{\tableofcontents[currentsection]}
+
+\begin{frame}{Units of Measure :: Why}
+  TODO
+\end{frame}
+
+\begin{frame}{Units of Measure :: How}
+  TODO
+\end{frame}
+
+\begin{frame}{Units of Measure :: Generalizing}
+  TODO
+\end{frame}
+
+\begin{frame}{Recap}
+  \begin{itemize}[<+->]
+    \item option types
+    \item records
+    \item sets and maps
+    \item discriminated unions
+    \item caching
+    \item units of measure
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Resources}
+  \begin{itemize}
+    \item Chris Okasaki - \textit{Functional Data Structures}
+    \item Steve Skiena - \textit{The Algorithm Design Manual}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Assignment}
+  \begin{itemize}
+    \item optional
+    \item send via mail (\texttt{mihai@rosedu.org})
+    \item next talk will start with discussion of solutions
+  \end{itemize}
+  \pause
+  \begin{block}{Joining tables}
+  TODO
+  \end{block}
+\end{frame}
+
+\end{document}
