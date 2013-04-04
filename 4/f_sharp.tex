@@ -198,6 +198,137 @@ let testString n =
 \section{Units of Measure}
 \frame{\tableofcontents[currentsection]}
 
+\begin{frame}{Remember Hungarian Notation?}
+  \begin{itemize}[<+->]
+    \item \texttt{szName}, \texttt{LPINT}, $\ldots$
+    \item \textit{kind} + name (\textbf{not} \textit{type})
+    \item useful for replacing missing type systems
+    \item Systems Hungarian Notation - bad
+    \item \textit{Hungarian Notation Is Not Recommended}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Data with Contextual Information}
+  \begin{itemize}[<+->]
+    \item row and column in Excel
+    \item different systems of coordinates: desktop/window/widget
+    \item $\ldots$
+    \item easy for code reviewers to spot mistakes
+    \item why not compiler?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Units of Measure}
+  \begin{verbatim}
+  [<Measure>] type m                  (* meter *)
+  [<Measure>] type s                  (* second *)
+  [<Measure>] type kg                 (* kilogram *)
+  [<Measure>] type N = (kg * m)/(s^2) (* Newtons *)
+  [<Measure>] type Pa = N/(m^2)       (* Pascals *)
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Units of Measure}
+  \begin{verbatim}
+  > let distance = 100.0<m>;;
+  > let time = 5.0<s>;;
+  > let speed = distance / time;;
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Units of Measure}
+  \begin{verbatim}
+  [<Measure>] type C
+  [<Measure>] type F
+
+  let to_fahrenheit (x : float<C>) =
+      x * (9.0<F>/5.0<C>) + 32.0<F>
+
+  let to_celsius (x : float<F>) =
+      (x - 32.0<F>) * (5.0<C>/9.0<F>)
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Units of Measure}
+  \small
+  \begin{verbatim}
+  > speed 20.0<m> 4.0<m>;; (* boom! *)
+
+    speed 20.0<m> 4.0<m>;;
+    --------------^^^^^^
+
+  stdin(39,15): error FS0001: Type mismatch. Expecting a
+          float<s>
+  but given a
+          float<m>.
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Units of Measure for Integrals}
+  \begin{verbatim}
+  [<Measure>] type col
+  [<Measure>] type row
+  let colOffset (a : int<col>) (b : int<col>) = a - b
+  let rowOffset (a : int<row>) (b : int<row>) = a - b
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Dimensionless Units}
+  \begin{itemize}[<+->]
+    \item use \texttt{<1>} for type
+  \end{itemize}
+  \begin{verbatim}
+  let to_meters x = x * 1<m>
+  let of_meters (x : float<m>) = float x
+  let of_meters2 (x : float<m>) = x / 1.0<m>
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Transparent Operations}
+  \small
+  \begin{verbatim}
+let vanillaFloats = [10.0; 15.5; 17.0]
+let lengths = [ for a in [2.0; 7.0; 14.0; 5.0] -> a * 1.0<m> ]
+let masses = [ for a in [55.54; 79.01; 35.90] -> a * 1.0<kg> ]
+
+let average (l : float<'u> list) =
+    let sumtuple (sum, count) x = sum + x, count + 1.0<_>
+    let sum, count = l |> List.fold sumtuple (0.0<_>, 0.0<_>)
+    sum / count;;
+
+> average vanillaFloats, average lengths, average masses;;
+val it : float * float<m> * float<kg> =
+  (14.16666667, 7.0, 56.8166667)
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{In Data Types}
+  \begin{itemize}
+    \item not to be confunded with generics/type variables
+  \end{itemize}
+  \begin{verbatim}
+> type triple<[<Measure>] 'a> =
+    { a : float<'a>; b : float<'a>; c : float<'a>};;
+
+> { a = 7.0<kg>; b = -10.5<_>; c = 0.5<_> };;
+val it : triple<kg> = {a = 7.0;
+                       b = -10.5;
+                       c = 0.5;}
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}{Behind the Scenes}
+  \begin{itemize}[<+->]
+    \item looking like proper types
+    \item but there are no operation on types (\texttt{*,/,\^})
+    \item used only at compile time (type inference)
+    \item erased afterwards
+    \item not kept in assemblies
+    \item cannot determine measure type at runtime
+    \item cannot be used directly as a type parameter
+  \end{itemize}
+\end{frame}
+
 \section{Functors}
 \frame{\tableofcontents[currentsection]}
 
@@ -232,7 +363,7 @@ let testString n =
 
 \begin{frame}{Resources}
   \begin{itemize}
-    \item TODO
+    \item http://www.joelonsoftware.com/articles/Wrong.html
     \item http://stackoverflow.com/questions/44965/what-is-a-monad
     \item http://www.haskell.org/haskellwiki/Monad\_tutorials\_timeline
   \end{itemize}
