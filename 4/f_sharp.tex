@@ -332,6 +332,84 @@ val it : triple<kg> = {a = 7.0;
 \section{Functors}
 \frame{\tableofcontents[currentsection]}
 
+\begin{frame}[fragile]{A Zoo of \texttt{map}s}
+  \small
+  \begin{itemize}[<+->]
+    \item \texttt{List.map}, \texttt{Seq.map}
+    \item \texttt{Option.map}
+    \item \texttt{Set.map}
+    \item \texttt{Stack.map}, \texttt{Tree.map}
+  \end{itemize}
+  \pause
+  \begin{verbatim}
+  let rec map f = function
+          | EmptyStack -> EmptyStack
+          | StackNode(hd, tl) -> StackNode(f hd, map f tl)
+  \end{verbatim}
+  \begin{verbatim}
+  let rec map f = function
+      | EmptyTree -> EmptyTree
+      | TreeNode(n, l, r) -> TreeNode(f n, map f l, map f r)
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}{Functors}
+  \begin{itemize}[<+->]
+    \item first intuition:
+    \item "containers" of some sort
+    \item ability to apply a function \textbf{uniformly} to \textbf{all}
+    elements in container
+    \item second intuition:
+    \item computational context
+    \item function composition
+    \item in the end:
+    \item data structures supporting \texttt{map}-like operations
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Laws}
+  \begin{itemize}[<+->]
+    \item \texttt{map id == \pause id}
+    \pause
+    \item \texttt{map (f . g) == \pause map f . \pause map g}
+    \pause
+    \item each type has \textbf{only} one \textit{valid} instance of \texttt{map}
+    \item usually, second law comes for free
+    \item Category Theory
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Example (1)}
+  \small
+  \begin{verbatim}
+  let rec map f = function
+      | EmptyTree -> EmptyTree
+      | TreeNode(n, l, r) -> TreeNode(f n, map f l, r)
+  \end{verbatim}
+  \pause
+  \textbf{Not correct} (not on all data contained)
+\end{frame}
+
+\begin{frame}[fragile]{Example (2)}
+  \tiny
+  \begin{verbatim}
+  let rec map f = function
+      | EmptyTree -> EmptyTree
+      | TreeNode(n, l, r) -> TreeNode (f n, TreeNode(f n, map f l, map f r), EmptyTree)
+  \end{verbatim}
+  \pause
+  \textbf{Not correct} (first law)
+\end{frame}
+
+\begin{frame}{Why}
+  \begin{itemize}[<+->]
+    \item proofs of correctness
+    \item focus on \textbf{what}, not \textit{how}
+    \item free instances
+    \item basis for complex type structures
+  \end{itemize}
+\end{frame}
+
 \section{Applicative}
 \frame{\tableofcontents[currentsection]}
 
@@ -366,6 +444,7 @@ val it : triple<kg> = {a = 7.0;
     \item http://www.joelonsoftware.com/articles/Wrong.html
     \item http://stackoverflow.com/questions/44965/what-is-a-monad
     \item http://www.haskell.org/haskellwiki/Monad\_tutorials\_timeline
+    \item http://www.haskell.org/haskellwiki/Typeclassopedia
   \end{itemize}
 \end{frame}
 
