@@ -413,6 +413,25 @@ val it : triple<kg> = {a = 7.0;
 \section{Applicative}
 \frame{\tableofcontents[currentsection]}
 
+\begin{frame}{Another View on \texttt{map}}
+    \begin{itemize}[<+->]
+      \item \texttt{map : ('a -> 'b) -> 'a option -> 'b option}
+      \item remember curry vs. uncurry functions
+      \item \texttt{map : ('a -> 'b) -> ('a option -> 'b option)}
+      \item \textit{lift} a function to \texttt{option} context
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Applicative Functors}
+  \begin{itemize}[<+->]
+    \item \texttt{('a -> 'b) option -> 'a option -> 'b option}
+    \item functions in context
+    \item keep same context
+    \item Applicative Programming Style
+    \item not used in F\#
+  \end{itemize}
+\end{frame}
+
 \section{Monads}
 \frame{\tableofcontents[currentsection]}
 
