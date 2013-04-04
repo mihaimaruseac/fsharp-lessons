@@ -9,6 +9,9 @@
 \setbeamertemplate{frametitle continuation}[from second]
 \setbeamertemplate{footline}[frame number]
 
+\pgfdeclareimage[height=7cm]{mtchart}{img/mtchart}
+\pgfdeclareimage[height=3cm]{type}{img/Typeclassopedia}
+
 \begin{document}
 
 \maketitle
@@ -435,16 +438,209 @@ val it : triple<kg> = {a = 7.0;
 \section{Monads}
 \frame{\tableofcontents[currentsection]}
 
+\begin{frame}[fragile]{Function Purity}
+  \begin{itemize}[<+->]
+    \item F\# functions can be impure
+    \item side effects: \texttt{printfn}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Purifying F\# Code}
+  \small
+  \begin{verbatim}
+let read_line() = System.Console.ReadLine()
+let print_string(s) = printf "%s" s
+print_string "What's your name? "
+let name = read_line()
+print_string ("Hello, " + name)
+  \end{verbatim}
+  \pause
+  \begin{verbatim}
+let read_line(f) = f(System.Console.ReadLine())
+let print_string(s, f) = f(printf "%s" s)
+print_string("What's your name? ", fun () ->
+    read_line(fun name ->
+            print_string("Hello, " + name, fun () -> ())))
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Adding 3 Number with Restrictions}
+  \tiny
+  \begin{verbatim}
+let addThreeNumbers() =
+    let getNum msg =
+        printf "%s" msg
+        match System.Int32.TryParse(System.Console.ReadLine()) with
+        | (true, n) when n >= 0 && n <= 100 -> Some(n)
+        | _ -> None
+ 
+    match getNum "#1: " with
+    | Some(x) ->
+        match getNum "#2: " with
+        | Some(y) ->
+            match getNum "#3: " with
+            | Some(z) -> Some(x + y + z)
+            | None -> None
+        | None -> None
+    | None -> None
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Adding 3 Number with Restrictions :: Better}
+  \tiny
+  \begin{verbatim}
+let addThreeNumbers() =
+    let bind(input, rest) =
+        match System.Int32.TryParse(input()) with
+        | (true, n) when n >= 0 && n <= 100 -> rest(n)
+        | _ -> None
+
+    let createMsg msg = fun () -> printf "%s" msg; System.Console.ReadLine()
+
+    bind(createMsg "#1: ", fun x ->
+        bind(createMsg "#2: ", fun y ->
+            bind(createMsg "#3: ", fun z -> Some(x + y + z) ) ) )
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Adding 3 Number with Restrictions :: Best}
+  \tiny
+  \begin{verbatim}
+let addThreeNumbers() =
+    let createMsg msg = fun () -> printf "%s" msg; System.Console.ReadLine()
+
+    new MaybeBuilder() {
+      let! x = createMsg "#1: "
+      let! y = createMsg "#2: "
+      let! z = createMsg "#3: "
+      return x + y + z
+    }
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Magic}
+  \begin{verbatim}
+    new MaybeBuilder() {
+      let! x = createMsg "#1: "
+      let! y = createMsg "#2: "
+      let! z = createMsg "#3: "
+      return x + y + z
+    }
+  \end{verbatim}
+  \begin{itemize}[<+->]
+    \item totally declarative
+    \item no testing for \texttt{None}
+    \item short-circuit
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Monads}
+  \begin{itemize}[<+->]
+    \item aka Computation Expressions
+    \item chaining Applicatives
+    \item abstract mathematical construction
+    \item \texttt{Bind : <'a> * ('a -> M<'b>) -> M<'b>}
+    \begin{itemize}
+      \item required
+      \item converts \texttt{let!} and \texttt{do!}
+    \end{itemize}
+    \item \texttt{Return : 'a -> M<'a>}
+    \begin{itemize}
+      \item required
+      \item converts \texttt{return}
+    \end{itemize}
+    \item \texttt{Delay : (unit -> M<'a>) -> M<'a>}
+    \begin{itemize}
+      \item optional
+      \item delay side effects to be performed when expected
+    \end{itemize}
+    \item many other optional members
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Desugaring}
+  \small
+  \begin{verbatim}
+let maybe = new MaybeBuilder()
+let sugared =
+    maybe {
+        let x = 12
+        let! y = Some 11
+        let! z = Some 30
+        return x + y + z
+    }
+  \end{verbatim}
+  \pause
+  \begin{verbatim}
+let maybe = new MaybeBuilder()
+let desugared = 
+    maybe.Delay(fun () ->
+        let x = 12
+         maybe.Bind(Some 11, fun y ->
+            maybe.Bind(Some 30, fun z ->
+                maybe.Return(x + y + z)
+                )
+            )
+        )
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{MaybeBuilder}}
+  \begin{verbatim}
+  type MaybeBuilder() =
+    member this.Return(x) = Some(x)
+    member this.Bind(x, f) =
+      match x with
+      | None -> None
+      | Some(v) -> f v
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}{Other Monads}
+  \begin{itemize}[<+->]
+    \item sequences
+    \begin{itemize}
+      \item special notation: \texttt{seq \textbraceleft ... \textbraceright }
+    \end{itemize}
+    \item I/O
+    \item Probabilistic Programming
+    \item State
+    \item $\ldots$
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Why}
+  \begin{itemize}[<+->]
+    \item programmable semicolons
+    \item implicit checking
+    \item implicit argument threading
+    \item shortcircuits
+    \item no more nested indents
+    \item common patterns captured
+    \item strong focus on \textit{what}
+    \item backtracking, async, $\ldots$ easier to code in monadic style
+    \item mini-languages (EDSLs)
+  \end{itemize}
+\end{frame}
+
 \section{Finishing slides}
 \frame{\tableofcontents[currentsection]}
 
 \begin{frame}{Monad Tutorial Fallacy}
+  \center
+  \pgfuseimage{mtchart}
 \end{frame}
 
 \begin{frame}{Monads in Imperative World}
+  \begin{itemize}[<+->]
+    \item language constructs posing as bind or return
+    \item monads hidden in design patterns
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Typeclassopedia}
+  \center
+  \pgfuseimage{type}
 \end{frame}
 
 \begin{frame}{Recap}
