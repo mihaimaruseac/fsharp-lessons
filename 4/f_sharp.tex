@@ -42,6 +42,159 @@ location) list} containing all values from all 3 lists.
 \section{Active Patterns}
 \frame{\tableofcontents[currentsection]}
 
+\begin{frame}[fragile]{A Lazy Stack}
+  \begin{verbatim}
+  type 'a lazyStack =
+      | Node of Lazy<'a * 'a lazyStack>
+      | EmptyStack
+  \end{verbatim}
+  \begin{verbatim}
+  let (|Cons|Nil|) = function
+      | Node(item) ->
+          let hd, tl = item.Force()
+          Cons(hd, tl)
+      | EmptyStack -> Nil
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Banana Brackets}
+  \begin{itemize}[<+->]
+    \item \texttt{(|...|)}
+    \item define ad-hoc union data structure
+    \item anonymous types
+  \end{itemize}
+  \pause
+  \begin{verbatim}
+let (|Even|Odd|) n =
+    if n % 2 = 0 then Even else Odd
+  \end{verbatim}
+  \pause
+  \begin{verbatim}
+type numKind =
+    | Even
+    | Odd
+
+let get_choice n =
+    if n % 2 = 0 then Even else Odd
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Active Patterns with Parameters}
+  \begin{verbatim}
+let (|SeqNode|SeqEmpty|) s =
+    if Seq.isEmpty s then SeqEmpty
+    else SeqNode ((Seq.hd s), Seq.skip 1 s)
+  \end{verbatim}
+  \pause
+  \begin{verbatim}
+type 'a seqWrapper =
+    | SeqEmpty
+    | SeqNode of 'a * seq<'a>
+
+let get_choice s =
+    if Seq.isEmpty s then SeqEmpty
+    else SeqNode ((Seq.hd s), Seq.skip 1 s)
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Usage}
+  \begin{itemize}
+    \item pattern matching
+  \end{itemize}
+  \begin{verbatim}
+> let (|Even|Odd|) n =
+      if n % 2 = 0 then Even
+      else Odd;;
+> let testNum n =
+      match n with
+      | Even -> printfn "%i is even" n
+      | Odd -> printfn "%i is odd" n;;
+> testNum 12;;
+12 is even
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Partial Patterns}
+  \tiny
+  \begin{verbatim}
+> let (|RegexContains|_|) pattern input =
+      let matches = System.Text.RegularExpressions.Regex.Matches(input, pattern)
+      if matches.Count > 0 then Some [ for m in matches -> m.Value ]
+      else None;;
+
+> let testString = function
+      | RegexContains "http://\S+" urls -> printfn "Got urls: %A" urls
+      | RegexContains "[^@]@[^.]+\.\W+" emails -> printfn "Got email address: %A" emails
+      | RegexContains "\d+" numbers -> printfn "Got numbers: %A" numbers
+      | _ -> printfn "Didn't find anything.";;
+
+> testString "867-5309, Jenny are you there?";;
+Got numbers: ["867"; "5309"]
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Partial Patterns :: Translation}
+  \tiny
+  \begin{verbatim}
+type choice =
+    | RegexContains of string list
+
+let get_choice pattern input =
+    let matches = System.Text.RegularExpressions.Regex.Matches(input, pattern)
+    if matches.Count > 0 then Some (RegexContains [ for m in matches -> m.Value ])
+    else None
+
+let testString n =
+    match get_choice "http://\S+" n with
+    | Some(RegexContains(urls)) -> printfn "Got urls: %A" urls
+    | None ->
+        match get_choice "[^@]@[^.]+\.\W+" n with
+        | Some(RegexContains emails) -> printfn "Got email address: %A" emails
+        | None ->
+            match get_choice "\d+" n with
+            | Some(RegexContains numbers) -> printfn "Got numbers: %A" numbers
+            | _ -> printfn "Didn't find anything."
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Mixing Partial Active Patterns}
+  \tiny
+  \begin{verbatim}
+let (|StartsWith|_|) pat (input : string) = if input.StartsWith(needle) then Some() else None
+let (|EndsWith|_|) pat (input : string) = if input.EndsWith(needle) then Some() else None
+let (|Equals|_|) x y = if x = y then Some() else None
+let (|RegexContains|_|) pat input =
+    let matches = System.Text.RegularExpressions.Regex.Matches(input, pat)
+    if matches.Count > 0 then Some [ for m in matches -> m.Value ]
+    else None
+
+let testString n =
+    match n with
+    | StartsWith "kitty" () -> printfn "starts with 'kitty'"
+    | StartsWith "bunny" () -> printfn "starts with 'bunny'"
+    | EndsWith "doggy" () -> printfn "ends with 'doggy'"
+    | Equals "monkey" () -> printfn "equals 'monkey'"
+    | RegexContains "http://\S+" urls -> printfn "Got urls: %A" urls
+    | RegexContains "[^@]@[^.]+\.\W+" emails -> printfn "Got email address: %A" emails
+    | RegexContains "\d+" numbers -> printfn "Got numbers: %A" numbers
+    | _ -> printfn "Didn't find anything."
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}{Why}
+  \begin{itemize}[<+->]
+    \item anonymous types
+    \item stop namespace pollution
+    \item help type inference
+    \item partial patterns $\sim$ \texttt{option} type
+    \item mixing partial patterns
+    \item easier than calling multiple \texttt{option} functions
+    \item can pattern match structures resistant to pattern match (\texttt{Seq})
+    \item not restricted to a finite number of cases
+    \item mix freely in match statements
+  \end{itemize}
+\end{frame}
+
 \section{Units of Measure}
 \frame{\tableofcontents[currentsection]}
 
