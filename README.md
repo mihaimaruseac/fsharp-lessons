@@ -2,7 +2,9 @@ fsharp-lessons
 ==============
 
 This repository holds a set of 6 presentation slides covering introductory
-aspects to functional programming using F#.
+aspects to functional programming using F#. Since this is not a pure
+functional language, slides covering interactions with .NET and non-functional
+programming will also be present.
 
 More details about this will come in time, as the lessons are given and impact
 is studied.
