@@ -658,11 +658,10 @@ open System.Windows.Forms
 
 let form = new Form(Width= 400,
          Height = 300,
-         Visible = true,
          Text = "Hello World") 
 form.TopMost <- true
 form.Click.Add (fun args-> printfn "the form was clicked")
-form.Show()
+form.ShowDialog() |> Ignore
   \end{verbatim}
 \end{frame}
 
