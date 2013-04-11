@@ -515,28 +515,155 @@ type MyInterface =
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Implementing Interfaces}
+\begin{frame}[fragile]{Implementing Interfaces}
+  \begin{itemize}
+    \item cannot directly inherit \& implement
+  \end{itemize}
+  \begin{verbatim}
+type IAddingService =
+    abstract member Add: int -> int -> int
+
+type MyAddingService() =
+    interface IAddingService with
+        member this.Add x y = x + y
+
+    interface System.IDisposable with
+        member this.Dispose() = printfn "disposed"
+  \end{verbatim}
 \end{frame}
 
-\begin{frame}{Using Interfaces}
+\begin{frame}[fragile]{Using Interfaces}
+  \begin{verbatim}
+let mas = new MyAddingService()
+mas.Add 1 2
+  \end{verbatim}
+  \pause
+  \begin{verbatim}
+let mas = new MyAddingService()
+let adder = mas :> IAddingService
+adder.Add 1 2
+  \end{verbatim}
+  \pause
+  \begin{verbatim}
+let testAddingService (adder:IAddingService) =
+    printfn "1+2=%i" <| adder.Add 1 2
+
+let mas = new MyAddingService()
+testAddingService mas
+  \end{verbatim}
 \end{frame}
 
-\begin{frame}{Multiple Interfaces}
-\end{frame}
+\begin{frame}[fragile]{Interfaces in Generic Type Definitions}
+  \small
+  \begin{verbatim}
+type tree<'a> when 'a :> IComparable<'a> =
+    | Nil
+    | Node of 'a * 'a tree * 'a tree
 
-\begin{frame}{Interfaces in Generic Type Definitions}
+let rec insert (x : #IComparable<'a>) = function
+    | Nil -> Node(x, Nil, Nil)
+    | Node(y, l, r) as node ->
+        if x.CompareTo(y) = 0 then node
+        elif x.CompareTo(y) = -1 then Node(y, insert x l, r)
+        else Node(y, l, insert x r)
+  \end{verbatim}
+  \pause
+  \begin{verbatim}
+type tree<'a> when 'a :> IComparable<'a>> =
+  | Nil
+  | Node of 'a * tree<'a> * tree<'a>
+val insert : 'a -> tree<'a> -> tree<'a>
+    when 'a :> IComparable<'a>
+  \end{verbatim}
 \end{frame}
 
 \begin{frame}{Using OO Features in F\#}
+  \begin{itemize}[<+->]
+    \item F\# is fundamentally functional
+    \item OO is nicely grafted
+    \item pro OO: porting from other languages
+    \item pro OO: integrating with other .NET languages
+    \item against: functions are purer than classes
+    \item against: declarative programming is better
+    \item against: type system works better when no OO is used
+  \end{itemize}
 \end{frame}
 
 \section{Finishing slides}
 \frame{\tableofcontents[currentsection]}
 
-\begin{frame}{Seamless .NET Integration}
+\begin{frame}[fragile]{Seamless .NET Integration}
+  \begin{itemize}[<+->]
+    \item complete OO support
+    \item generics and constraints
+    \item structs
+    \item exceptions
+    \item events and delegates
+  \end{itemize}
+  \pause
+  \begin{verbatim}
+  [<CLIEvent>]
+  member this.OnClick = clickEvent.Publish
+
+  type MyDelegate = delegate of int -> int
+  let f = MyDelegate (fun x -> x * x)
+  let result = f.Invoke(5)
+  \end{verbatim}
 \end{frame}
 
-\begin{frame}{C\# $\sim$ F\#}
+\begin{frame}[fragile]{Seamless .NET Integration}
+  \small
+  \begin{verbatim}
+let (i1success,i1) = System.Int32.TryParse("123");
+let (i2success,i2) = System.Int32.TryParse("hello");
+
+let dict =
+  new System.Collections.Generic.Dictionary<string,string>();
+dict.Add("a","hello")
+let (e1success,e1) = dict.TryGetValue("a");
+let (e2success,e2) = dict.TryGetValue("b");
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Seamless .NET Integration}
+  Named arguments to help type inference
+  \begin{verbatim}
+let createReader2 fileName = new System.IO.StreamReader(
+            path=fileName)
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Seamless .NET Integration}
+  Active patterns for .NET functions
+  \begin{verbatim}
+let (|Digit|Letter|Whitespace|Other|) ch = 
+   if System.Char.IsDigit(ch) then Digit
+   else if System.Char.IsLetter(ch) then Letter
+   else if System.Char.IsWhiteSpace(ch) then Whitespace
+   else Other
+
+let printChar ch = 
+  match ch with
+  | Digit -> printfn "%c is a Digit" ch
+  | Letter -> printfn "%c is a Letter" ch
+  | Whitespace -> printfn "%c is a Whitespace" ch
+  | _ -> printfn "%c is something else" ch
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Seamless .NET Integration}
+  Windows Forms
+  \begin{verbatim}
+open System.Windows.Forms 
+
+let form = new Form(Width= 400,
+         Height = 300,
+         Visible = true,
+         Text = "Hello World") 
+form.TopMost <- true
+form.Click.Add (fun args-> printfn "the form was clicked")
+form.Show()
+  \end{verbatim}
 \end{frame}
 
 \begin{frame}{Recap}
