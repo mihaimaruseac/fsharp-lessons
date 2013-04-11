@@ -193,13 +193,112 @@ val it : int = 1
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Ref Cells}
+\begin{frame}[fragile]{Ref Cells}
+  \begin{verbatim}
+  type 'a ref = { mutable contents : 'a }
+  \end{verbatim}
+  \pause
+  \begin{verbatim}
+  let ref v = { contents = v }
+  let (!) r = r.contents
+  let (:=) r v = r.contents <- v
+  \end{verbatim}
+  \pause
+  \begin{verbatim}
+  > let x = ref "hello";;
+  val x : string ref
+  > x;;
+  val it : string ref = {contents = "hello";}
+  > !x;;
+  val it : string = "hello"
+  > x := "world";;
+  val it : unit = ()
+  > !x;;
+  val it : string = "world"
+  \end{verbatim}
 \end{frame}
 
-\begin{frame}{Aliasing}
+\begin{frame}[fragile]{Ref Sharing}
+  \begin{verbatim}
+let withSideEffects x =
+    x := "assigned from withSideEffects function"
+ 
+let refTest() =
+    let msg = ref "hello"
+    printfn "%s" !msg
+ 
+    let setMsg() =
+        msg := "world"
+ 
+    setMsg()
+    printfn "%s" !msg
+ 
+    withSideEffects msg
+    printfn "%s" !msg
+  \end{verbatim}
 \end{frame}
 
-\begin{frame}{State Encapsulation}
+\begin{frame}[fragile]{Aliasing}
+  \begin{itemize}[<+->]
+    \item ref cell $\sim$ C pointer
+    \item multiple ref cells pointing to same memory location
+  \end{itemize}
+  \pause
+  \begin{verbatim}
+> let cell1 = ref 7;;
+> let cell2 = cell1;;
+> let cell3 = cell2;;
+
+> !cell1;;
+val it : int = 7
+
+> !cell2;;
+val it : int = 7
+
+> cell1 := 10;;
+val it : unit = ()
+
+> !cell3;;
+val it : int = 10
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}{Cell Refs Pitfalls}
+  \begin{itemize}[<+->]
+    \item aliasing problems
+    \item no more easy parallelization
+    \item no more proof correctness
+    \item no more declarative programming
+    \item ref cells should be treated like \textit{fire}
+    \item use cautiously
+    \item use only when absolutely necessary
+    \pause
+    \item useful when translating C programs
+    \item elegant and more maintainable functional solution
+    \item profile
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{State Encapsulation}
+  \begin{itemize}[<+->]
+    \item threading state between functions - \textbf{discouraged}
+    \item hide state in private functions
+  \end{itemize}
+  \pause
+  \begin{verbatim}
+> let incr =
+    let counter = ref 0
+    fun () ->
+        counter := !counter + 1
+        !counter;;
+
+> incr();;
+val it : int = 1
+> incr();;
+val it : int = 2
+> incr();;
+val it : int = 3
+  \end{verbatim}
 \end{frame}
 
 \section{Object Oriented Programming}
