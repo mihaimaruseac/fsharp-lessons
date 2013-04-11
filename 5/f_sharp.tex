@@ -31,10 +31,166 @@
 \section{Imperative Programming}
 \frame{\tableofcontents[currentsection]}
 
-\begin{frame}{Mutable Variables}
+\begin{frame}[fragile]{Mutable Variables}
+  \begin{itemize}[<+->]
+    \item Classical functional programming: values
+    \item Immutable
+    \item Allows "cool" effects: laziness, $\ldots$
+    \item F\# has mutable data: \texttt{mutable}
+  \end{itemize}
+  \pause
+  \begin{verbatim}
+  > let mutable x = 5;;
+  > x <- 10;;
+  \end{verbatim}
 \end{frame}
 
-\begin{frame}{Limitations of Mutable Variables}
+\begin{frame}[fragile]{Mutable Record Fields}
+  \begin{verbatim}
+type transactionItem =
+    { ID : int;
+        mutable IsProcessed : bool;
+        mutable ProcessedText : string; }
+
+let processItems (items : transactionItem list) =
+    items |> List.iter(fun item ->
+        item.IsProcessed <- true
+        item.ProcessedText <- sprintf "Processed %s"
+                 (DateTime.Now.ToString("hh:mm:ss"))
+        )
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}{Usefulness}
+  \begin{itemize}[<+->]
+    \item caching
+    \item memoization
+    \item no need for multiple copies
+    \item arrays
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{F\# Arrays}
+  \begin{verbatim}
+  > [| 1; 2; 3; 4; 5 |];;
+  > [| 1 .. 10 |];;
+  > [| 1 .. 3 .. 10 |];;
+  > [| for a in 1 .. 5 do
+      yield (a, a*a, a*a*a) |];;
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}{Array Init}
+  \begin{itemize}[<+->]
+    \item \texttt{System.Array}
+    \item \texttt{zeroCreate : int -> 'T []}
+    \item \texttt{create : int -> 'T -> 'T []}
+    \item \texttt{init : int -> (int -> 'T) -> 'T []}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Indexing}
+  \begin{verbatim}
+  > for i = 0 to names.Length - 1 do
+      printfn "%s" (names.[i]);;
+  > names.[1..3];;
+  > names.[2..];;
+  > names.[..3];;
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Multidimensional Arrays : Rectangles}
+\small
+  \begin{verbatim}
+> let grid = Array2D.init<string> 3 3
+      (fun row col -> sprintf "%i, %i" row col);;
+> grid;;
+val it : string [,]
+= [|[|"0, 0"; "0, 1"; "0, 2"|];
+    [|"1, 0"; "1, 1"; "1, 2"|];
+    [|"2, 0"; "2, 1"; "2, 2"|]|]
+> grid.[0, 1];;
+val it : string = "0, 1"
+> grid.[1, 2];;
+val it : string = "1, 2"
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Multidimensional Arrays : Jagged}
+  \begin{verbatim}
+> [| for a in 1 .. 5 do yield [| 1 .. a |] |];;
+val it : int array array
+= [|[|1|];
+    [|1; 2|];
+    [|1; 2; 3|];
+    [|1; 2; 3; 4|];
+    [|1; 2; 3; 4; 5|]|]
+
+> jagged.[2].[2];;
+val it : int = 3
+
+> jagged.[4].[0];;
+val it : int = 1
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}{Multidimensional Arrays}
+  \begin{itemize}[<+->]
+    \item 2 different types
+    \item rectangular - flat
+    \item jagged - array of pointers
+    \item non-interchangeable
+    \item rectangular more efficient than jagged
+    \item more than 2 dimensions?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\texttt{Array} Module}
+  \begin{itemize}
+    \item \texttt{val append : 'T[] -> 'T[] -> 'T[]}
+    \item \texttt{fill : 'T[] input -> int -> int -> 'T -> unit}
+    \item \texttt{rev : 'T[] -> 'T[]}
+    \item \texttt{sub : 'T[] -> int -> int -> 'T[]}
+    \item \texttt{length : 'T[] -> int}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\texttt{Array} Module : Sorting}
+  \begin{itemize}
+    \item \texttt{sort : 'T[] -> 'T[]}
+    \item \texttt{sortInPlace : 'T[] -> unit}
+    \item \texttt{sortBy : ('T -> 'T -> int) -> 'T[] -> 'T[]}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\texttt{Array} Module}
+  \begin{itemize}
+    \item \texttt{iter : ('T -> unit) -> 'T[] input -> unit}
+    \item \texttt{map : ('T -> 'U) -> 'T[] -> 'U[]}
+    \item \texttt{filter : ('T -> bool) -> 'T[] -> 'T[]}
+    \item \texttt{choose : ('T -> 'U option) -> 'T[] -> 'U[]}
+    \item \texttt{fold : ('State -> 'T -> 'State) -> 'State -> 'T[] input -> 'State}
+    \item \texttt{foldBack : ('T -> 'State -> 'State) -> 'T[] input -> 'State -> 'State}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Limitations of Mutable Variables}
+  \begin{verbatim}
+> let testMutable() =
+    let mutable msg = "hello"
+    printfn "%s" msg
+
+    let setMsg() =
+        msg <- "world"
+
+    setMsg()
+    printfn "%s" msg;;
+  \end{verbatim}
+  \pause
+  \begin{itemize}
+    \item inaccessible outside function scope
+    \item not in closures
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Ref Cells}
@@ -79,6 +235,7 @@
 \begin{frame}{Recap}
   \begin{itemize}[<+->]
     \item mutable variables
+    \item Arrays
     \item ref cells
     \item OO features
     \item .NET integration
