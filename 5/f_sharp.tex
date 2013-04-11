@@ -304,19 +304,227 @@ val it : int = 3
 \section{Object Oriented Programming}
 \frame{\tableofcontents[currentsection]}
 
-\begin{frame}{Classes}
+\begin{frame}[fragile]{Classes}
+  \begin{itemize}[<+->]
+    \item use \texttt{type}
+    \item always pass in parameters (constructors)
+    \item \texttt{member}s
+  \end{itemize}
+  \pause
+  \begin{verbatim}
+  type CustomerName(firstName, middleInitial, lastName) =
+      member this.FirstName = firstName
+      member this.MiddleInitial = middleInitial
+      member this.LastName = lastName
+  \end{verbatim}
+  \pause
+  \begin{itemize}
+    \item \textbf{immutable} private fields
+  \end{itemize}
 \end{frame}
 
-\begin{frame}{Inheritance}
+\begin{frame}[fragile]{Class Signature}
+  \begin{verbatim}
+type MyClass(intParam:int, strParam:string) = 
+    member this.Two = 2
+    member this.Square x = x * x
+
+type MyClass =
+  class
+    new : intParam:int * strParam:string -> MyClass
+    member Square : x:int -> int
+    member Two : int
+  end
+  \end{verbatim}
+  \begin{itemize}
+    \item param names are part of signature
+    \item constructor signatures
+  \end{itemize}
 \end{frame}
 
-\begin{frame}{Abstract Classes}
+\begin{frame}[fragile]{Let Bindings}
+  \begin{verbatim}
+type PrivateValueExample(seed) =
+    let privateValue = seed + 1
+    let privateAddToSeed input = seed + input
+    member this.AddToSeed x = privateAddToSeed x
+
+let instance = new PrivateValueExample(42)
+printf "%i" (instance.AddToSeed 2)
+  \end{verbatim}
 \end{frame}
 
-\begin{frame}{Interfaces}
+\begin{frame}[fragile]{Mutable Members}
+  \begin{verbatim}
+type MutableConstructorParameter(seed) =
+    let mutable mutableSeed = seed
+    member this.SetSeed x = mutableSeed <- x
+  \end{verbatim}
+  \pause
+  \begin{verbatim}
+type MutableConstructorParameter(seed) =
+    let mutable seed = seed
+    member this.setSeed x = seed <- x
+  \end{verbatim}
 \end{frame}
 
-\begin{frame}{Object Expressions}
+\begin{frame}[fragile]{More Constructor Behaviour}
+  \begin{verbatim}
+type DoPrivateFunctionExample(seed) =
+    let pV = seed + 1
+
+    do printfn "hello world"
+
+    let printPrivateValue() =
+        do printfn "pV = %i" pV
+
+    do printPrivateValue()
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Curried vs Uncurried Methods}
+  \begin{verbatim}
+    member this.CurriedAdd x y = x + y
+
+    member this.TupleAdd(x,y) = x + y
+  \end{verbatim}
+  \pause
+  \begin{itemize}[<+->]
+    \item tupled is consistent with .NET
+    \item curried allows partial application
+    \item tupled allows named parameters
+    \item curried helps with type inference
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Secondary Constructors}
+  \begin{verbatim}
+type MultipleConstructors(param1, param2) =
+    do printfn "Param1=%i Param12=%i" param1 param2
+
+    new(param1) = MultipleConstructors(param1,-1)
+
+    new() =
+        printfn "Constructing..."
+        MultipleConstructors(13,17)
+
+let mc1 = new MultipleConstructors(1,2)
+let mc2 = new MultipleConstructors(42)
+let mc3 = new MultipleConstructors()
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Inheritance}
+  \begin{verbatim}
+type DerivedClass(param1, param2) =
+   inherit BaseClass(param1)
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Abstract Methods}
+  \begin{verbatim}
+type BaseClass() =
+   abstract member Add: int -> int -> int
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Default Methods}
+  \begin{verbatim}
+type BaseClass() =
+   abstract member Add: int -> int -> int
+   default this.Add x y = x + y
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Abstract Classes}
+  \begin{verbatim}
+[<AbstractClass>]
+type AbstractBaseClass() =
+   abstract member Add: int -> int -> int
+   abstract member Pi : float 
+   abstract member Area : float with get,set
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Overriding}
+  \begin{verbatim}
+[<AbstractClass>]
+type Animal() =
+   abstract member MakeNoise: unit -> unit
+
+type Dog() =
+   inherit Animal()
+   override this.MakeNoise () = printfn "woof"
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Overriding}
+  \begin{verbatim}
+type Vehicle() =
+   abstract member TopSpeed: unit -> int
+   default this.TopSpeed() = 60
+
+type Rocket() =
+   inherit Vehicle()
+   override this.TopSpeed() = base.TopSpeed() * 10
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Upcasting}
+  \begin{verbatim}
+> let regularString = "Hello world";;
+val regularString : string
+
+> let upcastString = "Hello world" :> obj;;
+val upcastString : obj
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Downcasting}
+  \begin{verbatim}
+> let intAsObj = 20 :> obj;;
+val intAsObj : obj
+
+> let intDownCast = intAsObj :?> int;;
+val intDownCast : int
+
+> let stringDownCast = intAsObj :?> string;;
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}{Upcasting and Downcasting}
+  \begin{itemize}
+    \item type checked
+    \item upcasting is safe - \texttt{:>}
+    \item downcasting is unsafe - \texttt{:?>}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Interfaces}
+  \begin{verbatim}
+type MyInterface =
+   abstract member Add: int -> int -> int
+   abstract member Pi : float
+   abstract member Area : float with get,set
+  \end{verbatim}
+  \pause
+  \begin{itemize}[<+->]
+    \item like an abstract class
+    \item no \texttt{[<AbstractClass>]}
+    \item \textit{no constructor}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Implementing Interfaces}
+\end{frame}
+
+\begin{frame}{Using Interfaces}
+\end{frame}
+
+\begin{frame}{Multiple Interfaces}
+\end{frame}
+
+\begin{frame}{Interfaces in Generic Type Definitions}
 \end{frame}
 
 \begin{frame}{Using OO Features in F\#}
