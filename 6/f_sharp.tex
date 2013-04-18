@@ -361,4 +361,32 @@ match cartABPaid with
 \section{Real-Time Programming}
 \frame{\tableofcontents[currentsection]}
 
+\begin{frame}[fragile]{Tic-Tac-Toe}
+  Started last time
+  \pause
+  \small
+  \begin{verbatim}
+let buttons = Array2D.init<Button> 3 3 (fun row column ->
+            let b = new Button(Text=" ")
+            b.Top <- row * 100
+            b.Left <- column * 100
+            b.Click.Add (fun _ ->
+                    b.Text <- sprintf "%A" <| !player
+                    matrix.[row].[column] <-
+                        if !player = X then 1 else -1
+                    player := changePlayer !player
+                )
+            b
+     )
+
+let changePlayer = function
+   | X -> O
+   | O -> X
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}{Minesweeper}
+  TODO today
+\end{frame}
+
 \end{document}
