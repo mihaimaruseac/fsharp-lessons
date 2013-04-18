@@ -9,6 +9,8 @@
 \setbeamertemplate{frametitle continuation}[from second]
 \setbeamertemplate{footline}[frame number]
 
+\pgfdeclareimage[height=2cm]{sc}{img/sc}
+
 \begin{document}
 
 \maketitle
@@ -56,6 +58,305 @@
 
 \section{Designing for Correctness}
 \frame{\tableofcontents[currentsection]}
+
+\begin{frame}{Original Discussion}
+  \begin{itemize}
+    \item http://fsharpforfunandprofit.com/posts/designing-for-correctness/
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Problem}
+  \begin{itemize}[<+->]
+    \item e-commerce site with shopping cart
+    \item pay once per card
+    \item cannot pay empty carts
+    \item cannot modify paid carts
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{C\# Solution}
+  \small
+  \begin{verbatim}
+public class NaiveShoppingCart<TItem>
+{
+   private List<TItem> items;
+   private decimal paidAmount;
+
+   public NaiveShoppingCart()
+   {
+      this.items = new List<TItem>();
+      this.paidAmount = 0;
+   }
+
+   public bool IsPaidFor {get {return this.paidAmount > 0;}}
+   public IEnumerable<TItem> Items {get {return this.items;}}
+
+   // continues on next slide
+  \end{verbatim}
+\end{frame}
+
+
+\begin{frame}[label=pat1,fragile]{C\# Solution}
+  \small
+  \begin{verbatim}
+   public void AddItem(TItem item)
+   {
+      if (!this.IsPaidFor)
+         this.items.Add(item);
+   }
+
+   public void RemoveItem(TItem item)
+   {
+      if (!this.IsPaidFor)
+         this.items.Remove(item);
+   }
+
+   public void Pay(decimal amount)
+   {
+      if (!this.IsPaidFor)
+         this.paidAmount = amount;
+   }
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}{Bad Design}
+  \begin{itemize}[<+->]
+    \item one requirement is not met
+    \begin{itemize}
+      \item can pay for empty carts
+    \end{itemize}
+    \item other design flaws
+    \begin{itemize}
+      \item carts free of charge?
+      \item throw errors, silently ignore them
+      \item thread safety
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{A New Hope (1)}
+  \begin{itemize}
+    \item Compiler should be an ally
+    \item Runtime bugs $\rightarrow$ compile errors
+    \item use type system!!
+    \item wisely: strings and lists will not give any benefit used alone
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{A New Hope (2)}
+  \begin{itemize}
+    \item capture common patterns
+  \end{itemize}
+\end{frame}
+
+\againframe{pat1}
+
+\begin{frame}{A New Hope (3)}
+  \begin{itemize}[<+->]
+    \item immutable data
+    \item thread safety
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{A New Hope (4)}
+  \begin{itemize}
+    \item separate states from transitions
+  \end{itemize}
+  \centering
+  \pgfuseimage{sc}
+\end{frame}
+
+\begin{frame}[fragile]{Solution in F\#}
+  \begin{center} \pgfuseimage{sc} \end{center}
+  \begin{verbatim}
+type CartItem = string
+type EmptyState = NoItems
+type ActiveState = { UnpaidItems : CartItem list; }
+type PaidForState = { PaidItems : CartItem list;
+                      Payment : decimal}
+
+type Cart =
+    | Empty of EmptyState
+    | Active of ActiveState
+    | PaidFor of PaidForState
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Operations}
+  \begin{center} \pgfuseimage{sc} \end{center}
+  \begin{verbatim}
+let addToEmptyState item = ...
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Operations}
+  \begin{center} \pgfuseimage{sc} \end{center}
+  \begin{verbatim}
+let addToEmptyState item =
+   Cart.Active {UnpaidItems=[item]}
+let addToActiveState state itemToAdd = ...
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Operations}
+  \begin{center} \pgfuseimage{sc} \end{center}
+  \begin{verbatim}
+let addToEmptyState item =
+   Cart.Active {UnpaidItems=[item]}
+let addToActiveState state itemToAdd =
+   let newList = itemToAdd :: state.UnpaidItems
+   Cart.Active {state with UnpaidItems=newList }
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Operations}
+  \begin{center} \pgfuseimage{sc} \end{center}
+  \begin{verbatim}
+let removeFromActiveState state itemToRemove = ...
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Operations}
+  \begin{center} \pgfuseimage{sc} \end{center}
+  \begin{verbatim}
+let removeFromActiveState state itemToRemove =
+   let newList = state.UnpaidItems
+                 |> List.filter (fun i -> i<>itemToRemove)
+   match newList with
+   | [] -> Cart.Empty NoItems
+   | _ -> Cart.Active {state with UnpaidItems=newList}
+
+let payForActiveState state amount = ...
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Operations}
+  \begin{center} \pgfuseimage{sc} \end{center}
+  \begin{verbatim}
+let removeFromActiveState state itemToRemove =
+   let newList = state.UnpaidItems
+                 |> List.filter (fun i -> i<>itemToRemove)
+   match newList with
+   | [] -> Cart.Empty NoItems
+   | _ -> Cart.Active {state with UnpaidItems=newList}
+
+let payForActiveState state amount =
+   Cart.PaidFor {PaidItems=state.UnpaidItems;
+                 Payment=amount}
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Attaching Operations}
+  \begin{center} \pgfuseimage{sc} \end{center}
+  \begin{verbatim}
+type EmptyState with
+   member this.Add = addToEmptyState
+
+type ActiveState with
+   member this.Add = addToActiveState this
+   member this.Remove = removeFromActiveState this
+   member this.Pay = payForActiveState this
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Auxiliary Methods}
+  \begin{verbatim}
+let addItemToCart cart item = ...
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Auxiliary Methods}
+  \begin{verbatim}
+let addItemToCart cart item =
+   match cart with
+   | Empty state -> ...
+   | Active state -> ...
+   | PaidFor state -> ...
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Auxiliary Methods}
+  \begin{verbatim}
+let addItemToCart cart item =
+   match cart with
+   | Empty state -> state.Add item
+   | Active state -> state.Add item
+   | PaidFor state ->
+       printfn "ERROR: The cart is paid for"
+       cart
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Auxiliary Methods}
+  \begin{verbatim}
+let removeItemFromCart cart item = ...
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Auxiliary Methods}
+  \begin{verbatim}
+let removeItemFromCart cart item =
+   match cart with
+   | Empty state ->
+      printfn "ERROR: The cart is empty"
+      cart
+   | Active state ->
+      state.Remove item
+   | PaidFor state ->
+      printfn "ERROR: The cart is paid for"
+      cart
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Auxiliary Methods}
+  \begin{verbatim}
+let displayCart cart  =
+   match cart with
+   | Empty state ->
+      printfn "The cart is empty"
+   | Active state ->
+      printfn "The cart contains %A unpaid items"
+                state.UnpaidItems
+   | PaidFor state ->
+      printfn "The cart contains %A paid items, paid: %f"
+                state.PaidItems state.Payment
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Auxiliary Methods}
+  \begin{verbatim}
+type Cart with
+   static member NewCart = Cart.Empty NoItems
+   member this.Add = addItemToCart this
+   member this.Remove = removeItemFromCart this
+   member this.Display = displayCart this
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Test}
+  \begin{verbatim}
+match cartABPaid with
+| Empty state -> state.Pay 100m
+| PaidFor state -> state.Pay 100m
+| Active state -> state.Pay 100m
+  \end{verbatim}
+  \pause
+  Compile-time Error!
+\end{frame}
+
+\begin{frame}{Summary}
+  \begin{itemize}[<+->]
+    \item types and immutability help in achieving good design
+    \item if used properly
+    \item dependent types
+    \item state/transition separation
+    \item fewer conditionals
+    \item fewer unit tests to be written
+    \item property based testing
+    \item simpler functions
+    \item easy to get right from the start
+  \end{itemize}
+\end{frame}
 
 \section{Real-Time Programming}
 \frame{\tableofcontents[currentsection]}
